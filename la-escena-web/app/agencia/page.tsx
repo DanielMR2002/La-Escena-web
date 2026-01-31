@@ -1,6 +1,9 @@
 import { getArtists } from '@/app/lib/sanity'
 import AgencyClient from './AgencyClient'
 
+export const dynamic = 'force-dynamic'
+
+
 type PageProps = {
   searchParams: {
     city?: string
