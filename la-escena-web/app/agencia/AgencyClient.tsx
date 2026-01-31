@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import ArtistCard from '@/components/ArtistCard'
@@ -24,6 +24,13 @@ export default function AgencyClient({
     category: initialFilters?.category || '',
     city: initialFilters?.city || ''
   })
+
+  useEffect(() => {
+  setFilters({
+    category: initialFilters?.category || '',
+    city: initialFilters?.city || ''
+  })
+  }, [initialFilters.category, initialFilters.city])
 
   const router = useRouter()
   const searchParams = useSearchParams()
