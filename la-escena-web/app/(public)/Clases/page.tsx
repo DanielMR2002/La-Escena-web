@@ -1,6 +1,5 @@
-export const dynamic = 'force-dynamic'
-
 'use client'
+export const dynamic = 'force-dynamic'
 
 export default function ClasesPage() {
   const whatsappMessage = encodeURIComponent(
