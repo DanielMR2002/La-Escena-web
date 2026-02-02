@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
-import { getArtistBySlug, urlFor } from '@/app/lib/sanity'
+import { getArtistBySlug, urlFor } from '@/lib/sanity'
 import type { Metadata } from 'next'
 import { motion } from 'framer-motion'
 import ArtistPageClient from './ArtistPageClient'
@@ -13,7 +13,7 @@ type PageProps = {
   }
 }
 
-/* 🔥 SEO DINÁMICO */
+/* SEO DINÁMICO */
 export async function generateMetadata(
   { params }: PageProps
 ): Promise<Metadata> {
