@@ -1,4 +1,6 @@
-/* 'use client'
+export const dynamic = 'force-dynamic'
+
+'use client'
 
 export default function ClasesPage() {
   const whatsappMessage = encodeURIComponent(
@@ -43,10 +45,4 @@ export default function ClasesPage() {
       </section>
     </section>
   )
-}
- */
-
-
-export default function ClasesPage() {
-  return <h1>Clases</h1>
 }
