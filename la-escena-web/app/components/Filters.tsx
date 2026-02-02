@@ -1,6 +1,6 @@
 'use client'
 
-import styles from '@/app/agencia/agencia.module.css'
+import styles from '../(public)/agencia/agencia.module.css'
 import { Dispatch, SetStateAction } from 'react'
 
 type FiltersState = {

@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    
     "target": "ES2017",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
@@ -11,6 +12,7 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true
+    
   },
   "include": ["**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"]

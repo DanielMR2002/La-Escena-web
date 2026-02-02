@@ -1,4 +1,4 @@
-import { getArtists } from '@/app/lib/sanity'
+import { getArtists } from '@/lib/sanity'
 import AgencyClient from './AgencyClient'
 
 export const dynamic = 'force-dynamic'
