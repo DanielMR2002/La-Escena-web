@@ -1,3 +1,4 @@
 import { artist } from './artist'
+import { post } from './post'
 
-export const schemaTypes = [artist]
+export const schemaTypes = [artist,post]
