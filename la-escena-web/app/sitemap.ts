@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next'
 import { getPosts, getArtists } from '@/lib/sanity'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://la-escena-web.vercel.app' 
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL!
 
   // 📝 Blog
   const posts = await getPosts()
