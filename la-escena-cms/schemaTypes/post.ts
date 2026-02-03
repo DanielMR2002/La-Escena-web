@@ -24,7 +24,9 @@ export const post = defineType({
     defineField({
       name: 'excerpt',
       title: 'Resumen',
-      type: 'text'
+      type: 'text',
+      rows: 3,
+      validation: Rule => Rule.max(160)
     }),
     defineField({
       name: 'publishedAt',
