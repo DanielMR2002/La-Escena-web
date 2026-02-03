@@ -1,5 +1,12 @@
 import Link from 'next/link'
 
+export const metadata = {
+  title: 'La Escena | Agencia de artistas en Colombia',
+  description:
+    'Representamos artistas, bailarines y creadores de contenido en Colombia.'
+}
+
+
 export default function HomePage() {
   return (
     <section style={{ padding: '2rem' }}>

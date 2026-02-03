@@ -3,6 +3,12 @@ import { getPosts, urlFor } from '@/lib/sanity'
 
 export const dynamic = 'force-dynamic'
 
+export const metadata = {
+  title: 'Blog',
+  description:
+    'Noticias, consejos y contenido sobre arte, baile y creación de contenido.'
+}
+
 export default async function BlogPage() {
   const posts = await getPosts()
 

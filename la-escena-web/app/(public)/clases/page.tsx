@@ -1,5 +1,13 @@
 'use client'
+
+
 export const dynamic = 'force-dynamic'
+
+export const metadata = {
+  title: 'Clases de baile profesionales',
+  description:
+    'Clases de baile para todos los niveles con profesionales de la industria artística.'
+}
 
 export default function ClasesPage() {
   const whatsappMessage = encodeURIComponent(
