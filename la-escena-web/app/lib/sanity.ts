@@ -5,7 +5,7 @@ export const sanityClient = createClient({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
   dataset: process.env.NEXT_PUBLIC_SANITY_DATASET!,
   apiVersion: process.env.NEXT_PUBLIC_SANITY_API_VERSION!,
-  useCdn: false,
+  useCdn: true, // 👈 IMPORTANTE
 })
 
 const builder = imageUrlBuilder(sanityClient)
@@ -14,8 +14,10 @@ export function urlFor(source: any) {
   return builder.image(source)
 }
 
+/* ================== ARTISTAS ================== */
+
 export async function getArtists() {
-  return await sanityClient.fetch(`
+  return sanityClient.fetch(`
     *[_type == "artist"]{
       _id,
       name,
@@ -27,9 +29,8 @@ export async function getArtists() {
   `)
 }
 
-
 export async function getArtistBySlug(slug: string) {
-  return await sanityClient.fetch(
+  return sanityClient.fetch(
     `
     *[_type == "artist" && slug.current == $slug][0]{
       _id,
@@ -40,6 +41,34 @@ export async function getArtistBySlug(slug: string) {
       experience,
       description,
       photos
+    }
+    `,
+    { slug }
+  )
+}
+
+/* ================== BLOG ================== */
+
+export async function getPosts() {
+  return sanityClient.fetch(`
+    *[_type == "post"] | order(publishedAt desc){
+      title,
+      slug,
+      excerpt,
+      publishedAt,
+      mainImage
+    }
+  `)
+}
+
+export async function getPostBySlug(slug: string) {
+  return sanityClient.fetch(
+    `
+    *[_type == "post" && slug.current == $slug][0]{
+      title,
+      publishedAt,
+      body,
+      mainImage
     }
     `,
     { slug }
