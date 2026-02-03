@@ -66,6 +66,7 @@ export async function getPostBySlug(slug: string) {
     `
     *[_type == "post" && slug.current == $slug][0]{
       title,
+      excerpt,
       publishedAt,
       body,
       mainImage
