@@ -1,5 +1,5 @@
-'use client'
 import type { Metadata } from 'next'
+import ClasesClient from './ClasesClient'
 
 export const dynamic = 'force-dynamic'
 

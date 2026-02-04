@@ -18,13 +18,25 @@ export function urlFor(source: any) {
 
 export async function getArtists() {
   return sanityClient.fetch(`
-    *[_type == "artist"]{
+    *[_type == "artist" && visible == true]{
       _id,
       name,
       slug,
-      category,
       city,
-      photos
+      category,
+      styles,
+      experience,
+      photos,
+
+      // campos originales
+      artistAvailability,
+      adminAvailabilityOverride,
+
+      // CAMPO CALCULADO 
+      "isAvailable": select(
+        defined(adminAvailabilityOverride) => adminAvailabilityOverride,
+        artistAvailability
+      )
     }
   `)
 }
@@ -75,3 +87,4 @@ export async function getPostBySlug(slug: string) {
     { slug }
   )
 }
+
