@@ -4,8 +4,6 @@ import { urlFor } from '@/lib/sanity'
 import styles from '../(public)/agencia/agencia.module.css'
 import { motion } from 'framer-motion'
 
-
-
 type ArtistCardProps = {
   artist: any
 }
@@ -14,12 +12,14 @@ export default function ArtistCard({ artist }: ArtistCardProps) {
   const image = artist.photos?.[0]
 
   return (
-  <Link href={`/artistas/${artist.slug.current}`}>
-    <motion.article className={styles.artistCard}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ scale: 1.03 }}
-      transition={{ duration: 0.3 }}>
+    <Link href={`/artistas/${artist.slug.current}`}>
+      <motion.article
+        className={styles.artistCard}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        whileHover={{ scale: 1.03 }}
+        transition={{ duration: 0.3 }}
+      >
         {image && (
           <div style={{ overflow: 'hidden', borderRadius: '12px' }}>
             <Image
@@ -28,46 +28,66 @@ export default function ArtistCard({ artist }: ArtistCardProps) {
               width={400}
               height={300}
               style={{
-               width: '100%',
-               height: 'auto',
-               objectFit: 'cover'
+                width: '100%',
+                height: 'auto',
+                objectFit: 'cover'
               }}
             />
           </div>
         )}
-      <div>
-        <h3
-          style={{
-           fontSize: '1.1rem',
-           fontWeight: 500,
-           marginBottom: '0.25rem'
-          }}
-        >
-        {artist.name}
-        </h3>
-        <p
-          style={{
-           fontSize: '0.9rem',
-           color: '#666',
-           marginBottom: '0.2rem'
-          }}
-        >
-          {artist.city}
-        </p>
 
-        <span
-          style={{
-           fontSize: '0.75rem',
-           textTransform: 'uppercase',
-           letterSpacing: '0.08em',
-           color: '#999'
-          }}
-        >
-          {artist.category}
-        </span>
-      </div>
-    </motion.article>
-  </Link>
-)
+        <div>
+          {/* NOMBRE */}
+          <h3
+            style={{
+              fontSize: '1.1rem',
+              fontWeight: 500,
+              marginBottom: '0.25rem'
+            }}
+          >
+            {artist.name}
+          </h3>
 
+          {/* CIUDAD */}
+          <p
+            style={{
+              fontSize: '0.9rem',
+              color: '#666',
+              marginBottom: '0.2rem'
+            }}
+          >
+            {artist.city}
+          </p>
+
+          {/* CATEGORÍA */}
+          <span
+            style={{
+              fontSize: '0.75rem',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              color: '#999',
+              display: 'block'
+            }}
+          >
+            {artist.category}
+          </span>
+
+          {/* DISPONIBILIDAD */}
+          {artist.isAvailable !== undefined && (
+            <span
+              style={{
+                display: 'inline-block',
+                marginTop: '0.4rem',
+                fontSize: '0.75rem',
+                fontWeight: 500,
+                color: artist.isAvailable ? '#1a7f37' : '#b42318'
+              }}
+            >
+              {artist.isAvailable ? 'Disponible' : 'No disponible'}
+            </span>
+          )}
+        </div>
+      </motion.article>
+    </Link>
+  )
 }
