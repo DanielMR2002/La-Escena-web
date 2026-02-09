@@ -28,11 +28,11 @@ export async function getArtists() {
       experience,
       photos,
 
-      // campos originales
+      // estados reales
       artistAvailability,
       adminAvailabilityOverride,
 
-      // CAMPO CALCULADO 
+      // campo calculado (NO FILTRA, SOLO INFORMA)
       "isAvailable": select(
         defined(adminAvailabilityOverride) => adminAvailabilityOverride,
         artistAvailability
@@ -40,6 +40,9 @@ export async function getArtists() {
     }
   `)
 }
+
+
+
 
 export async function getArtistBySlug(slug: string) {
   return sanityClient.fetch(
