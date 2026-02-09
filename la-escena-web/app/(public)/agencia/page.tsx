@@ -3,23 +3,17 @@ import AgencyClient from './AgencyClient'
 
 export const dynamic = 'force-dynamic'
 
-
-type PageProps = {
-  searchParams: {
-    city?: string
-    category?: string
-  }
-}
-
-export default async function AgenciaPage({ searchParams }: PageProps) {
+export default async function AgenciaPage() {
   const artists = await getArtists()
+
+  console.log('ARTISTS PAGE', artists)
 
   return (
     <AgencyClient
       artists={artists}
       initialFilters={{
-        city: searchParams.city || '',
-        category: searchParams.category || ''
+        city: '',
+        category: ''
       }}
     />
   )

@@ -91,7 +91,8 @@ export const artist = defineType({
       name: 'experience',
       title: 'Años de experiencia',
       type: 'number',
-      group: 'profile'
+      group: 'profile',
+      validation: Rule => Rule.min(0)
     }),
 
     /* ─────────────────────────────
@@ -125,14 +126,6 @@ export const artist = defineType({
       type: 'array',
       group: 'filters',
       of: [{ type: 'string' }]
-    }),
-
-    defineField({
-      name: 'availability',
-      title: 'Disponibilidad',
-      type: 'boolean',
-      group: 'filters',
-      initialValue: true
     }),
 
     /* ─────────────────────────────
