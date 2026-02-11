@@ -1,27 +1,37 @@
 import { sanityClient } from '@/lib/sanity'
 
-type ClientArtistConfig = {
-  allowedArtistIds?: string[]
+type ClientConfig = {
+  clientId?: string
   allowedCategories?: string[]
 }
 
-export async function getClientArtists(config: ClientArtistConfig) {
-  const {
-    allowedArtistIds = [],
-    allowedCategories = []
-  } = config
+export async function getClientArtists(config: ClientConfig) {
+  const { clientId, allowedCategories } = config
 
   return sanityClient.fetch(
     `
     *[
-      _type == "artist"
-      && visible == true
-      && (
-        $allowedArtistIds == [] || _id in $allowedArtistIds
+      _type == "artist" &&
+      visible == true &&
+
+      // disponibilidad efectiva
+      (
+        !defined(adminAvailabilityOverride) && artistAvailability == true
+        ||
+        adminAvailabilityOverride == true
       )
-      && (
-        $allowedCategories == [] || category in $allowedCategories
-      )
+
+      ${
+        allowedCategories?.length
+          ? `&& category in $allowedCategories`
+          : ''
+      }
+
+      ${
+        clientId
+          ? `&& _id in *[_type == "client" && _id == $clientId][0].artists[]._ref`
+          : ''
+      }
     ]{
       _id,
       name,
@@ -40,9 +50,9 @@ export async function getClientArtists(config: ClientArtistConfig) {
         artistAvailability
       )
     }
-  `,
+    `,
     {
-      allowedArtistIds,
+      clientId,
       allowedCategories
     }
   )
