@@ -14,36 +14,34 @@ export const client = defineType({
     }),
 
     defineField({
+      name: 'slug',
+      title: 'Slug',
+      type: 'slug',
+      options: {
+        source: 'name',
+        maxLength: 96
+      },
+      validation: Rule => Rule.required()
+    }),
+
+    defineField({
       name: 'email',
       title: 'Email',
       type: 'string'
     }),
 
     defineField({
-      name: 'allowedArtists',
+      name: 'artists',
       title: 'Artistas asignados',
       type: 'array',
-      of: [{ type: 'reference', to: [{ type: 'artist' }] }],
+      of: [
+        {
+          type: 'reference',
+          to: [{ type: 'artist' }]
+        }
+      ],
       description:
-        'Artistas que este cliente puede ver en su entorno privado'
-    }),
-
-    defineField({
-      name: 'allowedCategories',
-      title: 'Categorías permitidas',
-      type: 'array',
-      of: [{ type: 'string' }],
-      options: {
-        list: [
-          { title: 'Director artístico', value: 'director' },
-          { title: 'Coreógrafo', value: 'coreografo' },
-          { title: 'Bailarín', value: 'bailarin' },
-          { title: 'Profesor', value: 'profesor' },
-          { title: 'Artista circense', value: 'circense' }
-        ]
-      },
-      description:
-        'Limita los filtros disponibles para este cliente'
+        'Artistas que este cliente puede ver en su perfil'
     }),
 
     defineField({
@@ -52,12 +50,5 @@ export const client = defineType({
       type: 'boolean',
       initialValue: true
     })
-  ],
-
-  preview: {
-    select: {
-      title: 'name',
-      subtitle: 'email'
-    }
-  }
+  ]
 })

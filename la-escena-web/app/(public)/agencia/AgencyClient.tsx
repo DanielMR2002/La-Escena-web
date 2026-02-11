@@ -9,6 +9,12 @@ import styles from './agencia.module.css'
 
 type AgencyClientProps = {
   artists: any[]
+  filterOptions: {
+    categories: string[]
+    cities: string[]
+    styles: string[]
+    experienceRange: { min: number; max: number } | null
+  }
   initialFilters: {
     city: string
     category: string
@@ -17,6 +23,7 @@ type AgencyClientProps = {
 
 export default function AgencyClient({
   artists,
+  filterOptions,
   initialFilters
 }: AgencyClientProps) {
   const [filters, setFilters] = useState<FiltersState>({
@@ -30,15 +37,7 @@ export default function AgencyClient({
     [artists, filters]
   )
 
-  const categories = useMemo(
-    () => Array.from(new Set(artists.map(a => a.category).filter(Boolean))),
-    [artists]
-  )
-
-  const cities = useMemo(
-    () => Array.from(new Set(artists.map(a => a.city).filter(Boolean))),
-    [artists]
-  )
+  const { categories, cities } = filterOptions
 
   return (
     <section className={styles.container}>
