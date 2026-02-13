@@ -1,4 +1,4 @@
-import { ArtistFiltersV2 } from '@/types/artistFilters'
+import { ArtistFiltersV2 } from 'types/artistFilters'
 
 export function applyArtistFilters(
   artists: any[],

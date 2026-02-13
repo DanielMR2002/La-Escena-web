@@ -36,9 +36,10 @@
     ".next/types/**/*.ts",
     "**/*.mts",
     ".next/dev/types/**/*.ts"
-  ],
+, "scripts/createAdmin.js"  ],
   "exclude": [
     "node_modules",
     ".next"
-  ]
+  ],
+  "types": ["next-auth"]
 }
