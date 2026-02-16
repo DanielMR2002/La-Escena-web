@@ -1,11 +1,10 @@
-import NextAuth from "next-auth"
+import NextAuth, { type NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import bcrypt from "bcrypt"
 import { prisma } from "@/lib/prisma"
 
-
-const handler = NextAuth({
+export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
 
   session: {
@@ -22,31 +21,27 @@ const handler = NextAuth({
 
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-        return null
+          return null
         }
 
-        const email = credentials.email as string
-        const password = credentials.password as string
-
-
         const user = await prisma.user.findUnique({
-          where: { email }
+          where: { email: credentials.email }
         })
 
-        if (!user.password) return null
+        if (!user || !user.password) return null
 
         const isValid = await bcrypt.compare(
-          password,
+          credentials.password,
           user.password
         )
-
 
         if (!isValid) return null
 
         return {
           id: user.id,
           email: user.email,
-          role: user.role
+          role: user.role,
+          slug: user.slug ?? undefined
         }
       }
     })
@@ -55,22 +50,24 @@ const handler = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.role = user.role as "ADMIN" | "CLIENT"
+        token.role = user.role
+        token.slug = user.slug
       }
       return token
     },
 
     async session({ session, token }) {
-      if (token && session.user) {
-        session.user.role = token.role as "ADMIN" | "CLIENT"
+      if (session.user) {
+        session.user.role = token.role as any
+        session.user.slug = token.slug as string | undefined
       }
       return session
     }
-
   },
 
-  secret: process.env.NEXTAUTH_SECRET!
+  secret: process.env.NEXTAUTH_SECRET
+}
 
-})
+const handler = NextAuth(authOptions)
 
 export { handler as GET, handler as POST }
