@@ -1,4 +1,5 @@
-import { sanityClient } from '@/app/lib/sanity'
+import { sanityClient } from '@/lib/sanity'
+
 
 type ClientConfig = {
   clientId?: string
