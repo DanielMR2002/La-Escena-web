@@ -1,19 +1,19 @@
 export const dynamic = "force-dynamic"
 
+import { getArtists } from "@/services/artist.service"
+import { requireAdmin } from "@/lib/auth"
+
 export default async function AdminArtistsPage() {
 
-  const res = await fetch(
-    `${process.env.NEXTAUTH_URL}/api/admin/artists/list`,
-    { cache: "no-store" }
-  )
+  await requireAdmin()
 
-  const artists = await res.json()
+  const artists = await getArtists()
 
   return (
     <div>
       <h1>Artistas</h1>
 
-      {artists.map((artist: any) => (
+      {artists.map((artist) => (
         <div key={artist.id}>
           <p>Email: {artist.user.email}</p>
           <p>Estado: {artist.status}</p>

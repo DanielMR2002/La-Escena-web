@@ -1,19 +1,22 @@
 export const dynamic = "force-dynamic"
 
+import { getClients } from "@/services/user.service"
+import { requireAdmin } from "@/lib/auth"
+
 export default async function AdminClientsPage() {
 
-  const res = await fetch(
-    `${process.env.NEXTAUTH_URL}/api/admin/clients/list`,
-    { cache: "no-store" }
-  )
+  await requireAdmin()
 
-  const clients = await res.json()
+  const clients = await getClients()
 
   return (
     <div>
       <h1>Clientes</h1>
-      {clients.map((client: any) => (
-        <p key={client.id}>{client.email}</p>
+
+      {clients.map((client) => (
+        <div key={client.id}>
+          <p>{client.email}</p>
+        </div>
       ))}
     </div>
   )
