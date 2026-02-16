@@ -1,8 +1,9 @@
 "use client"
 
-import { signIn } from "next-auth/react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { signIn, getSession } from "next-auth/react"
+
 
 export default function LoginPage() {
   const router = useRouter()
@@ -10,20 +11,29 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
+  e.preventDefault()
 
     const res = await signIn("credentials", {
-      email,
-      password,
-      redirect: false
+    email,
+    password,
+    redirect: false
     })
 
     if (!res?.error) {
-      router.push("/")
+      const session = await getSession()
+
+      if (session?.user.role === "ADMIN") {
+        router.push("/admin")
+      } else if (session?.user.role === "CLIENT") {
+        router.push("/cliente")
+      } else {
+        router.push("/")
+      }
     } else {
       alert("Credenciales incorrectas")
     }
   }
+
 
   return (
     <div style={{ padding: "2rem" }}>

@@ -10,6 +10,13 @@ datasource db {
 enum Role {
   ADMIN
   CLIENT
+  ARTIST
+}
+
+enum ArtistStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 model User {
@@ -17,12 +24,42 @@ model User {
   email     String   @unique
   password  String
   role      Role     @default(CLIENT)
+  slug      String?  @unique
+
+  // Relaciones
+  artistProfile ArtistProfile?
+  clientAccess  ClientArtistAccess[] @relation("ClientAccess")
+  artistAccess  ClientArtistAccess[] @relation("ArtistAccess")
 
   accounts  Account[]
   sessions  Session[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model ArtistProfile {
+  id           String        @id @default(uuid())
+  userId       String        @unique
+  status       ArtistStatus  @default(PENDING)
+  adminComment String?
+  reviewedAt   DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ClientArtistAccess {
+  id        String @id @default(uuid())
+  clientId  String
+  artistId  String
+
+  client User @relation("ClientAccess", fields: [clientId], references: [id], onDelete: Cascade)
+  artist User @relation("ArtistAccess", fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@unique([clientId, artistId])
 }
 
 model Account {
