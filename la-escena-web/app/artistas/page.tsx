@@ -1,4 +1,4 @@
-import { getArtists } from '@/app/lib/sanity'
+import { getArtists } from '@/lib/sanity'
 import Link from 'next/link'
 
 export default async function ArtistasPage() {

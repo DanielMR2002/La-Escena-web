@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic"
 
 import { NextResponse } from "next/server"
-import { requireAdmin } from "@/app/lib/auth"
+import { requireAdmin } from "@/lib/auth"
 import { getArtists } from "@/services/artist.service"
 
 export async function GET() {

@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic"
 
 import { NextResponse } from "next/server"
-import { requireAdmin } from "@/app/lib/auth"
+import { requireAdmin } from "@/lib/auth"
 import { updateArtistStatus } from "@/services/artist.service"
 import { ArtistStatus } from "@prisma/client"
 

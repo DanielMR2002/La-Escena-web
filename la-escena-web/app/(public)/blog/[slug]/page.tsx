@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { getPostBySlug, urlFor } from '@/app/lib/sanity'
+import { getPostBySlug, urlFor } from '@/lib/sanity'
 import { PortableText } from '@portabletext/react'
 import styles from '@/styles/blog.module.css'
 import type { Metadata } from 'next'
