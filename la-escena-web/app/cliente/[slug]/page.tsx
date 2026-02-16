@@ -1,7 +1,7 @@
-import { sanityClient } from '@/lib/sanity'
-import { getClientArtists } from '@/lib/artists/getClientArtists'
-import { getAvailableFilterOptions } from '@/lib/filters/getAvailableFilterOptions'
-import AgencyClient from '@/(public)/agencia/AgencyClient'
+import { sanityClient } from '@/app/lib/sanity'
+import { getClientArtists } from '@/app/lib/artists/getClientArtists'
+import { getAvailableFilterOptions } from '@/app/lib/filters/getAvailableFilterOptions'
+import AgencyClient from '@/app/(public)/agencia/AgencyClient'
 
 export const dynamic = 'force-dynamic'
 

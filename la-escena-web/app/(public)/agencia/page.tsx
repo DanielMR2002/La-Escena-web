@@ -1,5 +1,5 @@
-import { getArtists } from '@/lib/sanity'
-import { getAvailableFilterOptions } from '@/lib/filters/getAvailableFilterOptions'
+import { getArtists } from '@/app/lib/sanity'
+import { getAvailableFilterOptions } from '@/app/lib/filters/getAvailableFilterOptions'
 import AgencyClient from './AgencyClient'
 
 export const dynamic = 'force-dynamic'
