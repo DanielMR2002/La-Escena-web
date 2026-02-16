@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next'
-import { getPosts, getArtists } from '@/app/lib/sanity'
+import { getPosts, getArtists } from '@/lib/sanity'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL!
