@@ -2,9 +2,9 @@
 
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import ArtistCard from '@/components/ArtistCard'
-import Filters, { FiltersState } from '@/components/Filters'
-import { applyArtistFilters } from '@/lib/filters/applyArtistFilters'
+import ArtistCard from '@/app/components/ArtistCard'
+import Filters, { FiltersState } from '@/app/components/Filters'
+import { applyArtistFilters } from '@/app/lib/filters/applyArtistFilters'
 import styles from './agencia.module.css'
 
 type AgencyClientProps = {

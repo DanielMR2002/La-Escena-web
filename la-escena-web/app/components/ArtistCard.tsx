@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { urlFor } from '@/lib/sanity'
+import { urlFor } from '@/app/lib/sanity'
 import styles from '../(public)/agencia/agencia.module.css'
 import { motion } from 'framer-motion'
 

@@ -1,29 +1,28 @@
 export const dynamic = "force-dynamic"
 
-
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/api/auth/[...nextauth]/route"
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { requireAdmin } from "@/app/lib/auth"
+import { updateArtistStatus } from "@/services/artist.service"
+import { ArtistStatus } from "@prisma/client"
 
 export async function POST(req: Request) {
+  try {
+    await requireAdmin()
 
-  const session = await getServerSession(authOptions)
+    const { artistId, status, comment } = await req.json()
 
-  if (!session || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
+    await updateArtistStatus(
+      artistId,
+      status as ArtistStatus,
+      comment
+    )
+
+    return NextResponse.json({ success: true })
+
+  } catch {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 403 }
+    )
   }
-
-  const { artistId, status, comment } = await req.json()
-
-  await prisma.artistProfile.update({
-    where: { id: artistId },
-    data: {
-      status,
-      adminComment: comment,
-      reviewedAt: new Date()
-    }
-  })
-
-  return NextResponse.json({ success: true })
 }

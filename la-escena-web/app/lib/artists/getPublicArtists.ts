@@ -1,4 +1,4 @@
-import { sanityClient } from '@/lib/sanity'
+import { sanityClient } from '@/app/lib/sanity'
 
 export async function getPublicArtists() {
   return sanityClient.fetch(`

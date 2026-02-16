@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { getPosts, urlFor } from '@/lib/sanity'
+import { getPosts, urlFor } from '@/app/lib/sanity'
 
 export const dynamic = 'force-dynamic'
 

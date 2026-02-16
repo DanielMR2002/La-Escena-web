@@ -1,8 +1,7 @@
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
-import { getArtistBySlug, urlFor } from '@/lib/sanity'
+import { getArtistBySlug, urlFor } from '@/app/lib/sanity'
 import type { Metadata } from 'next'
-import { motion } from 'framer-motion'
 import ArtistPageClient from './ArtistPageClient'
 
 

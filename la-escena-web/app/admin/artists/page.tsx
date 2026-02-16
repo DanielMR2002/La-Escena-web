@@ -1,13 +1,13 @@
 export const dynamic = "force-dynamic"
 
-import { prisma } from "@/lib/prisma"
-
 export default async function AdminArtistsPage() {
-  const artists = await prisma.artistProfile.findMany({
-    include: {
-      user: true
-    }
-  })
+
+  const res = await fetch(
+    `${process.env.NEXTAUTH_URL}/api/admin/artists/list`,
+    { cache: "no-store" }
+  )
+
+  const artists = await res.json()
 
   return (
     <div>
