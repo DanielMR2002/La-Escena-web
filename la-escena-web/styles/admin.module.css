@@ -1,0 +1,63 @@
+.pageTitle {
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 30px;
+}
+
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.table th {
+  text-align: left;
+  padding: 12px;
+  background: #f3f3f3;
+  font-weight: 600;
+}
+
+.table td {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.statusPending {
+  color: orange;
+  font-weight: 600;
+}
+
+.statusApproved {
+  color: green;
+  font-weight: 600;
+}
+
+.statusRejected {
+  color: red;
+  font-weight: 600;
+}
+
+.buttonApprove {
+  background: #16a34a;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.buttonReject {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
