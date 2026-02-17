@@ -13,6 +13,11 @@ export default async function AdminDashboard() {
     getArtists()
   ])
 
+  const pendingArtists = artists.filter(
+    (artist) => artist.status === "PENDING"
+  )
+
+
   return (
     <div>
       <h1>Dashboard</h1>
@@ -32,6 +37,14 @@ export default async function AdminDashboard() {
             {artists.length}
           </p>
         </div>
+
+        <div style={{ background: "white", padding: "20px", borderRadius: "10px" }}>
+          <h3>Artistas Pendientes</h3>
+          <p style={{ fontSize: "28px", fontWeight: "bold" }}>
+            {pendingArtists.length}
+          </p>
+        </div>
+
 
       </div>
     </div>
