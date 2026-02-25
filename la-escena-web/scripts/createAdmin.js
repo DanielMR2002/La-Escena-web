@@ -4,18 +4,17 @@ import bcrypt from "bcrypt"
 const prisma = new PrismaClient()
 
 async function main() {
-  const hashedPassword = await bcrypt.hash("cliente123", 10)
+  const hashedPassword = await bcrypt.hash("admin123", 10)
 
   await prisma.user.create({
     data: {
-      email: "cliente@agencia.com",
+      email: "admin@laescena.com",
       password: hashedPassword,
-      role: "CLIENT",
-      slug: "daniel"
+      role: "ADMIN"
     }
   })
 
-  console.log("✅ Cliente creado correctamente")
+  console.log("✅ Admin creado correctamente")
 }
 
 main()
