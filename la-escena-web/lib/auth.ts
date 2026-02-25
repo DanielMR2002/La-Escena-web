@@ -11,3 +11,13 @@ export async function requireAdmin() {
   return session
 }
 
+export async function requireArtist() {
+  const session = await getServerSession(authOptions)
+
+  if (!session || session.user.role !== "ARTIST") {
+    throw new Error("Unauthorized")
+  }
+
+  return session
+}
+

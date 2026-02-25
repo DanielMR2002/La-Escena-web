@@ -45,11 +45,28 @@ model ArtistProfile {
   adminComment String?
   reviewedAt   DateTime?
 
+  profileData Json?
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  revisions ArtistProfileRevision[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model ArtistProfileRevision {
+  id           String        @id @default(uuid())
+  artistId     String
+  data         Json
+  status       ArtistStatus  @default(PENDING)
+  adminComment String?
+  createdAt    DateTime      @default(now())
+  reviewedAt   DateTime?
+
+  artist ArtistProfile @relation(fields: [artistId], references: [id], onDelete: Cascade)
+}
+
 
 model ClientArtistAccess {
   id        String @id @default(uuid())

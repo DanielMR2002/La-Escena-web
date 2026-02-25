@@ -15,6 +15,17 @@ export default async function AdminArtistsPage() {
     <div>
       <h1 className={styles.pageTitle}>Artistas</h1>
 
+      {/* BOTÓN VER REVISIONES */}
+      <Link href="/admin/artists/revisions">
+        <button
+          className={styles.primaryButton}
+          style={{ marginRight: "10px" }}
+        >
+          Ver Revisiones
+        </button>
+      </Link>
+
+
       {/* BOTÓN CREAR ARTISTA */}
       <div style={{ marginBottom: "20px" }}>
         <Link href="/admin/artists/create">

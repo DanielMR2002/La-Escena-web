@@ -2,21 +2,18 @@ export const dynamic = "force-dynamic"
 
 import { getClients } from "@/services/user.service"
 import { getArtists } from "@/services/artist.service"
+import { getPendingRevisionsCount } from "@/services/artist-revision.service"
 import { requireAdmin } from "@/lib/auth"
 
 export default async function AdminDashboard() {
 
   await requireAdmin()
 
-  const [clients, artists] = await Promise.all([
+  const [clients, artists, pendingRevisionsCount] = await Promise.all([
     getClients(),
-    getArtists()
+    getArtists(),
+    getPendingRevisionsCount()
   ])
-
-  const pendingArtists = artists.filter(
-    (artist) => artist.status === "PENDING"
-  )
-
 
   return (
     <div>
@@ -39,12 +36,11 @@ export default async function AdminDashboard() {
         </div>
 
         <div style={{ background: "white", padding: "20px", borderRadius: "10px" }}>
-          <h3>Artistas Pendientes</h3>
+          <h3>Revisiones Pendientes</h3>
           <p style={{ fontSize: "28px", fontWeight: "bold" }}>
-            {pendingArtists.length}
+            {pendingRevisionsCount}
           </p>
         </div>
-
 
       </div>
     </div>
