@@ -41,12 +41,14 @@ export default async function AdminArtistsPage() {
             <tr>
               <th>Email</th>
               <th>Estado</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
             {artists.map((artist) => (
               <tr key={artist.id}>
                 <td>{artist.user.email}</td>
+
                 <td
                   className={
                     artist.status === "PENDING"
@@ -57,6 +59,14 @@ export default async function AdminArtistsPage() {
                   }
                 >
                   {artist.status}
+                </td>
+
+                <td>
+                  <Link href={`/admin/artists/${artist.id}`}>
+                    <button className={styles.secondaryButton}>
+                      Ver Perfil
+                    </button>
+                  </Link>
                 </td>
               </tr>
             ))}

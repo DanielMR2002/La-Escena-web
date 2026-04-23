@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 enum Role {
@@ -26,7 +27,6 @@ model User {
   role      Role     @default(CLIENT)
   slug      String?  @unique
 
-  // Relaciones
   artistProfile ArtistProfile?
   clientAccess  ClientArtistAccess[] @relation("ClientAccess")
   artistAccess  ClientArtistAccess[] @relation("ArtistAccess")
@@ -45,6 +45,7 @@ model ArtistProfile {
   adminComment String?
   reviewedAt   DateTime?
 
+  sanityId    String?
   profileData Json?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -66,7 +67,6 @@ model ArtistProfileRevision {
 
   artist ArtistProfile @relation(fields: [artistId], references: [id], onDelete: Cascade)
 }
-
 
 model ClientArtistAccess {
   id        String @id @default(uuid())

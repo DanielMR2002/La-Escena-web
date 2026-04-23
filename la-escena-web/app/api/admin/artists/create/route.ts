@@ -24,12 +24,13 @@ export async function POST(req: Request) {
       artist
     })
 
-  } catch (error) {
+  } 
+  catch (error: any) {
     console.error("CREATE ARTIST ERROR:", error)
 
     return NextResponse.json(
-      { error: "Error creating artist" },
-      { status: 500 }
+      { error: error.message || "Error creating artist" },
+      { status: 400 }
     )
   }
 }
