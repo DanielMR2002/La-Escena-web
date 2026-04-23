@@ -20,28 +20,38 @@ export const authOptions: NextAuthOptions = {
       },
 
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
+        try {
+          if (!credentials?.email || !credentials?.password) {
+            return null
+          }
+
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email }
+          })
+
+          if (!user || !user.password) {
+            return null
+          }
+
+          const isValid = await bcrypt.compare(
+            credentials.password,
+            user.password
+          )
+
+          if (!isValid) {
+            return null
+          }
+
+          return {
+            id: user.id,
+            email: user.email,
+            role: user.role,
+            slug: user.slug ?? undefined
+          }
+
+        } catch (error) {
+          console.error("Error en authorize:", error)
           return null
-        }
-
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email }
-        })
-
-        if (!user || !user.password) return null
-
-        const isValid = await bcrypt.compare(
-          credentials.password,
-          user.password
-        )
-
-        if (!isValid) return null
-
-        return {
-          id: user.id,
-          email: user.email,
-          role: user.role,
-          slug: user.slug ?? undefined
         }
       }
     })
@@ -63,6 +73,7 @@ export const authOptions: NextAuthOptions = {
         session.user.role = token.role as "ADMIN" | "CLIENT" | "ARTIST"
         session.user.slug = token.slug as string | undefined
       }
+
       return session
     }
   },

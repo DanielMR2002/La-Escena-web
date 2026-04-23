@@ -17,7 +17,7 @@ export default function CreateArtistPage() {
     const data = await res.json()
 
     if (!res.ok) {
-      alert("Error creando artista")
+      alert(data.error || "Error creando artista")
       return
     }
 
