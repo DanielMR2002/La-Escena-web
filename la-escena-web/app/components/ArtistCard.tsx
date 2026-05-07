@@ -1,8 +1,10 @@
+'use client'
+
 import Image from 'next/image'
 import Link from 'next/link'
 import { urlFor } from '@/lib/sanity'
-import styles from '../(public)/agencia/agencia.module.css'
 import { motion } from 'framer-motion'
+import { MapPin } from 'lucide-react'
 
 type ArtistCardProps = {
   artist: any
@@ -14,74 +16,57 @@ export default function ArtistCard({ artist }: ArtistCardProps) {
   return (
     <Link href={`/artistas/${artist.slug.current}`}>
       <motion.article
-        className={styles.artistCard}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        whileHover={{ scale: 1.03 }}
+        whileHover={{ y: -6 }}
         transition={{ duration: 0.3 }}
+        className="group bg-card border rounded-xl overflow-hidden hover:shadow-xl transition-all cursor-pointer"
       >
-        {image && (
-          <div style={{ overflow: 'hidden', borderRadius: '12px' }}>
+        {/* IMAGE */}
+        <div className="relative aspect-[4/5] overflow-hidden">
+          {image ? (
             <Image
-              src={urlFor(image).width(400).height(300).url()}
+              src={urlFor(image).width(500).height(600).url()}
               alt={artist.name}
-              width={400}
-              height={300}
-              style={{
-                width: '100%',
-                height: 'auto',
-                objectFit: 'cover'
-              }}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
             />
-          </div>
-        )}
+          ) : (
+            <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground text-sm">
+              Sin imagen
+            </div>
+          )}
 
-        <div>
-          {/* NOMBRE */}
-          <h3
-            style={{
-              fontSize: '1.1rem',
-              fontWeight: 500,
-              marginBottom: '0.25rem'
-            }}
-          >
+          {/* OVERLAY */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+        </div>
+
+        {/* CONTENT */}
+        <div className="p-4 space-y-2">
+          {/* NAME */}
+          <h3 className="text-lg font-semibold tracking-wide">
             {artist.name}
           </h3>
 
-          {/* CIUDAD */}
-          <p
-            style={{
-              fontSize: '0.9rem',
-              color: '#666',
-              marginBottom: '0.2rem'
-            }}
-          >
-            {artist.city}
+          {/* CITY */}
+          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+            <MapPin size={14} />
+            {artist.city || 'Colombia'}
+          </div>
+
+          {/* CATEGORY */}
+          <p className="text-xs uppercase tracking-wider text-accent">
+            {artist.category}
           </p>
 
-          {/* CATEGORÍA */}
-          <span
-            style={{
-              fontSize: '0.75rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              color: '#999',
-              display: 'block'
-            }}
-          >
-            {artist.category}
-          </span>
-
-          {/* DISPONIBILIDAD */}
+          {/* STATUS */}
           {artist.isAvailable !== undefined && (
             <span
-              style={{
-                display: 'inline-block',
-                marginTop: '0.4rem',
-                fontSize: '0.75rem',
-                fontWeight: 500,
-                color: artist.isAvailable ? '#1a7f37' : '#b42318'
-              }}
+              className={`inline-block text-xs font-semibold mt-1 ${
+                artist.isAvailable
+                  ? 'text-green-600'
+                  : 'text-red-500'
+              }`}
             >
               {artist.isAvailable ? 'Disponible' : 'No disponible'}
             </span>

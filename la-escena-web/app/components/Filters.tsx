@@ -1,7 +1,5 @@
 'use client'
 
-import styles from '../(public)/agencia/agencia.module.css'
-
 export type FiltersState = {
   category: string
   city: string
@@ -24,45 +22,86 @@ export default function Filters({
   onFilterChange
 }: FiltersProps) {
   return (
-    <div className={styles.filters}>
-      {/* Categoría */}
-      <select
-        value={filters.category}
-        onChange={e =>
-          onFilterChange({
-            ...filters,
-            category: e.target.value
-          })
-        }
-      >
-        <option value="">Todas las categorías</option>
-        {categories.map(cat => (
-          <option key={cat} value={cat}>
-            {cat}
-          </option>
-        ))}
-      </select>
+    <div className="flex flex-col gap-6">
 
-      {/* Ciudad */}
-      <select
-        value={filters.city}
-        onChange={e =>
-          onFilterChange({
-            ...filters,
-            city: e.target.value
-          })
-        }
-      >
-        <option value="">Todas las ciudades</option>
-        {cities.map(city => (
-          <option key={city} value={city}>
-            {city}
-          </option>
-        ))}
-      </select>
+      {/* FILAS */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 
-      {/* Disponibilidad */}
-      <label style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+        {/* CATEGORÍA */}
+        <select
+          value={filters.category}
+          onChange={e =>
+            onFilterChange({
+              ...filters,
+              category: e.target.value
+            })
+          }
+          className="px-4 py-2 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+        >
+          <option value="">Todas las categorías</option>
+          {categories.map(cat => (
+            <option key={cat} value={cat}>
+              {cat}
+            </option>
+          ))}
+        </select>
+
+        {/* CIUDAD */}
+        <select
+          value={filters.city}
+          onChange={e =>
+            onFilterChange({
+              ...filters,
+              city: e.target.value
+            })
+          }
+          className="px-4 py-2 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+        >
+          <option value="">Todas las ciudades</option>
+          {cities.map(city => (
+            <option key={city} value={city}>
+              {city}
+            </option>
+          ))}
+        </select>
+
+        {/* EXPERIENCIA MIN */}
+        <input
+          type="number"
+          min={0}
+          placeholder="Exp. mínima"
+          value={filters.minExperience ?? ''}
+          onChange={e =>
+            onFilterChange({
+              ...filters,
+              minExperience: e.target.value
+                ? Math.max(0, Number(e.target.value))
+                : undefined
+            })
+          }
+          className="px-4 py-2 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+        />
+
+        {/* EXPERIENCIA MAX */}
+        <input
+          type="number"
+          min={0}
+          placeholder="Exp. máxima"
+          value={filters.maxExperience ?? ''}
+          onChange={e =>
+            onFilterChange({
+              ...filters,
+              maxExperience: e.target.value
+                ? Math.max(0, Number(e.target.value))
+                : undefined
+            })
+          }
+          className="px-4 py-2 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+        />
+      </div>
+
+      {/* CHECKBOX */}
+      <label className="flex items-center gap-2 text-sm cursor-pointer">
         <input
           type="checkbox"
           checked={filters.availableOnly}
@@ -72,41 +111,11 @@ export default function Filters({
               availableOnly: e.target.checked
             })
           }
+          className="w-4 h-4"
         />
         Solo disponibles
       </label>
 
-      {/* Experiencia mínima */}
-      <input
-        type="number"
-        min={0}
-        placeholder="Experiencia mínima (años)"
-        value={filters.minExperience ?? ''}
-        onChange={e =>
-          onFilterChange({
-            ...filters,
-            minExperience: e.target.value
-              ? Math.max(0, Number(e.target.value))
-              : undefined
-          })
-        }
-      />
-
-      {/* Experiencia máxima */}
-      <input
-        type="number"
-        min={0}
-        placeholder="Experiencia máxima (años)"
-        value={filters.maxExperience ?? ''}
-        onChange={e =>
-          onFilterChange({
-            ...filters,
-            maxExperience: e.target.value
-              ? Math.max(0, Number(e.target.value))
-              : undefined
-          })
-        }
-      />
     </div>
   )
 }
