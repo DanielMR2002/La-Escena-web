@@ -1,47 +1,37 @@
-import Link from 'next/link'
-import { getPosts, urlFor } from '@/lib/sanity'
+import { getPosts } from '@/lib/sanity'
+import BlogList from '@/app/components/BlogList'
+import type { Metadata } from 'next'
 
 export const dynamic = 'force-dynamic'
 
-export const metadata = {
-  title: 'Blog',
-  description:
-    'Noticias, consejos y contenido sobre arte, baile y creación de contenido.'
+export const metadata: Metadata = {
+  title: 'Blog | La Escena',
+  description: 'Noticias, consejos y contenido sobre arte, baile y creación de contenido.',
 }
 
 export default async function BlogPage() {
   const posts = await getPosts()
 
   return (
-    <section style={{ padding: '2rem', maxWidth: 900, margin: '0 auto' }}>
-      <h1>Blog</h1>
+    <>
+      {/* HERO */}
+      <section className="bg-foreground py-20">
+        <div className="container text-center space-y-4">
+          <h1 className="font-heading text-5xl sm:text-7xl tracking-wide text-primary-foreground">
+            Nuestro <span className="text-secondary">Blog</span>
+          </h1>
+          <p className="text-primary-foreground/60 max-w-lg mx-auto">
+            Noticias, tips y tendencias del mundo del baile y el entretenimiento.
+          </p>
+        </div>
+      </section>
 
-      {posts.length === 0 && <p>No hay publicaciones aún.</p>}
-
-      <ul style={{ marginTop: '2rem' }}>
-        {posts.map((post: any) => (
-          <li key={post.slug.current} style={{ marginBottom: '2rem' }}>
-            <h2>{post.title}</h2>
-
-            {post.mainImage && (
-              <img
-                src={urlFor(post.mainImage).width(600).url()}
-                alt={post.title}
-                style={{ width: '100%', borderRadius: 8 }}
-              />
-            )}
-
-            <p>{post.excerpt}</p>
-
-            {post.slug?.current && (
-              <Link href={`/blog/${post.slug.current}`}>
-                Leer más
-              </Link>
-            )}
-          </li>
-        ))}
-      </ul>
-    </section>
+      {/* POSTS */}
+      <section className="py-20 bg-background">
+        <div className="container max-w-4xl">
+          <BlogList posts={posts} />
+        </div>
+      </section>
+    </>
   )
 }
-
