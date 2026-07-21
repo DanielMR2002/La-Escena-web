@@ -7,6 +7,7 @@ export default function ContactForm() {
   const [form, setForm] = useState({
     name: '',
     email: '',
+    phone: '',
     company: '',
     service: '',
     city: '',
@@ -33,7 +34,7 @@ export default function ContactForm() {
         body: JSON.stringify(form),
       })
       if (res.ok) {
-        setForm({ name: '', email: '', company: '', service: '', city: '', date: '', message: '' })
+        setForm({ name: '', email: '', phone: '', company: '', service: '', city: '', date: '', message: '' })
         setSuccess(true)
       }
     } catch (error) {
@@ -67,6 +68,15 @@ export default function ContactForm() {
           className={inputClass}
         />
       </div>
+
+      <input
+        name="phone"
+        type="tel"
+        placeholder="+57 300 000 0000"
+        value={form.phone}
+        onChange={handleChange}
+        className={inputClass}
+      />
 
       <div className="grid sm:grid-cols-2 gap-4">
         <input

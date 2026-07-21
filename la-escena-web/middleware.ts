@@ -11,11 +11,12 @@ export default withAuth(
       return NextResponse.next()
     }
 
-    // CLIENT solo puede entrar a su propio slug
+    // CLIENT solo puede entrar a su propio slug (rutas estáticas del portal cliente quedan exentas)
+    const CLIENT_STATIC_ROUTES = ["lista"]
     if (pathname.startsWith("/cliente/")) {
       const slugFromUrl = pathname.split("/")[2]
 
-      if (token?.slug !== slugFromUrl) {
+      if (!CLIENT_STATIC_ROUTES.includes(slugFromUrl) && token?.slug !== slugFromUrl) {
         return NextResponse.redirect(new URL("/", req.url))
       }
     }

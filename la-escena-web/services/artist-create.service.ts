@@ -2,14 +2,8 @@ import { prisma } from "@/lib/prisma"
 import { sanityWriteClient } from "@/lib/sanity"
 import bcrypt from "bcrypt"
 
-export async function createArtist(
-  email: string,
-  password: string
-) {
-  // 🔎 1️⃣ Verificar si ya existe el email
-  const existingUser = await prisma.user.findUnique({
-    where: { email }
-  })
+export async function createArtist(email: string, password: string) {
+  const existingUser = await prisma.user.findUnique({ where: { email } })
 
   if (existingUser) {
     throw new Error("El email ya está registrado")
@@ -17,55 +11,50 @@ export async function createArtist(
 
   const hashedPassword = await bcrypt.hash(password, 10)
 
-  // 2️⃣ Crear usuario
-  const user = await prisma.user.create({
-    data: {
-      email,
-      password: hashedPassword,
-      role: "ARTIST"
-    }
+  // 1️⃣ User + ArtistProfile en una sola transacción — siempre aparece en la lista
+  const { user, artistProfile } = await prisma.$transaction(async (tx) => {
+    const user = await tx.user.create({
+      data: { email, password: hashedPassword, role: "ARTIST" },
+    })
+
+    const artistProfile = await tx.artistProfile.create({
+      data: { userId: user.id, status: "APPROVED", sanityId: null },
+    })
+
+    return { user, artistProfile }
   })
 
-  // 3️⃣ Crear documento completo en Sanity
-  const sanityDoc = await sanityWriteClient.create({
-    _type: "artist",
+  // 2️⃣ Sanity es best-effort: si falla, el artista igual queda en Prisma
+  try {
+    const sanityDoc = await sanityWriteClient.create({
+      _type: "artist",
+      name: email.split("@")[0],
+      slug: {
+        _type: "slug",
+        current: email.split("@")[0] + "-" + Date.now(),
+      },
+      photos: [],
+      category: "bailarin",
+      styles: [],
+      description: "",
+      experience: 0,
+      city: "",
+      age: null,
+      height: null,
+      hashtags: [],
+      artistAvailability: true,
+      visible: true,
+    })
 
-    // IDENTIDAD
-    name: email.split("@")[0],
-    slug: {
-      _type: "slug",
-      current: email.split("@")[0] + "-" + Date.now()
-    },
-    photos: [],
+    await prisma.artistProfile.update({
+      where: { id: artistProfile.id },
+      data: { sanityId: sanityDoc._id },
+    })
 
-    // PERFIL
-    category: "bailarin",
-    styles: [],
-    description: "",
-    experience: 0,
+    return { user, artistProfile: { ...artistProfile, sanityId: sanityDoc._id } }
 
-    // FILTROS
-    city: "",
-    age: null,
-    height: null,
-    hashtags: [],
-
-    // CONTROL
-    artistAvailability: true,
-    visible: true
-  })
-
-  // 4️⃣ Crear ArtistProfile
-  const artistProfile = await prisma.artistProfile.create({
-    data: {
-      userId: user.id,
-      status: "APPROVED",
-      sanityId: sanityDoc._id
-    }
-  })
-
-  return {
-    user,
-    artistProfile
+  } catch (sanityError) {
+    console.error("Sanity create failed — artist saved in Prisma without sanityId:", sanityError)
+    return { user, artistProfile }
   }
 }

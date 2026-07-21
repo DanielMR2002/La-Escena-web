@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     const body = await req.json()
     console.log("BODY:", body)
 
-    const { email, password, artistIds } = body
+    const { name, email, password, artistIds } = body
 
     if (!email || !password) {
       return NextResponse.json(
@@ -23,7 +23,8 @@ export async function POST(req: Request) {
     const client = await createClientWithArtists(
       email,
       password,
-      artistIds || []
+      artistIds || [],
+      name || undefined
     )
 
     console.log("CLIENT CREATED:", client)

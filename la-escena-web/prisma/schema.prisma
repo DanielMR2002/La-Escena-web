@@ -20,10 +20,17 @@ enum ArtistStatus {
   REJECTED
 }
 
+enum ShortlistStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
   password  String
+  name      String?
   role      Role     @default(CLIENT)
   slug      String?  @unique
 
@@ -31,8 +38,9 @@ model User {
   clientAccess  ClientArtistAccess[] @relation("ClientAccess")
   artistAccess  ClientArtistAccess[] @relation("ArtistAccess")
 
-  accounts  Account[]
-  sessions  Session[]
+  accounts          Account[]
+  sessions          Session[]
+  clientShortlists  ClientShortlist[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -77,6 +85,20 @@ model ClientArtistAccess {
   artist User @relation("ArtistAccess", fields: [artistId], references: [id], onDelete: Cascade)
 
   @@unique([clientId, artistId])
+}
+
+model ClientShortlist {
+  id           String          @id @default(uuid())
+  clientId     String
+  artistIds    Json
+  artistNames  Json
+  message      String?
+  status       ShortlistStatus @default(PENDING)
+  adminComment String?
+  createdAt    DateTime        @default(now())
+  reviewedAt   DateTime?
+
+  client User @relation(fields: [clientId], references: [id], onDelete: Cascade)
 }
 
 model Account {

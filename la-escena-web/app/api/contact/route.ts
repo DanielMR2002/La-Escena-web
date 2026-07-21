@@ -7,6 +7,7 @@ export async function POST(req: Request) {
   const {
     name,
     email,
+    phone,
     company,
     service,
     city,
@@ -31,6 +32,7 @@ export async function POST(req: Request) {
         <h3>Nuevo mensaje de contacto</h3>
         <p><strong>Nombre:</strong> ${name}</p>
         <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Teléfono:</strong> ${phone || '—'}</p>
         <p><strong>Empresa:</strong> ${company || '—'}</p>
         <p><strong>Servicio:</strong> ${service}</p>
         <p><strong>Ciudad:</strong> ${city}</p>
