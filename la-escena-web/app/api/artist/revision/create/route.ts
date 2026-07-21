@@ -32,6 +32,15 @@ export async function POST(req: Request) {
       }
     })
 
+    await prisma.artistProfile.update({
+      where: { id: profile.id },
+      data: {
+        status: "PENDING",
+        adminComment: null,
+        reviewedAt: null,
+      }
+    })
+
     return NextResponse.json({ success: true })
 
   } catch (error) {

@@ -1,5 +1,11 @@
+import type { Metadata } from 'next'
 import { Mail, Phone, MapPin, MessageCircle } from 'lucide-react'
 import ContactForm from '@/app/components/ContactForm'
+
+export const metadata: Metadata = {
+  title: 'Contacto',
+  description: 'Contáctanos para castings, eventos, clases de baile o producción de contenido. La Escena, agencia de artistas en Colombia.',
+}
 
 export default function ContactoPage() {
   return (

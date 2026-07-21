@@ -21,3 +21,23 @@ export async function requireArtist() {
   return session
 }
 
+export async function requireClient() {
+  const session = await getServerSession(authOptions)
+
+  if (!session || session.user.role !== "CLIENT") {
+    throw new Error("Unauthorized")
+  }
+
+  return session
+}
+
+export async function requireArtistOrAdmin() {
+  const session = await getServerSession(authOptions)
+
+  if (!session || (session.user.role !== "ARTIST" && session.user.role !== "ADMIN")) {
+    throw new Error("Unauthorized")
+  }
+
+  return session
+}
+

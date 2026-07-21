@@ -4,7 +4,8 @@ import bcrypt from "bcrypt"
 export async function createClientWithArtists(
   email: string,
   password: string,
-  artistIds: string[]
+  artistIds: string[],
+  name?: string
 ) {
   const hashedPassword = await bcrypt.hash(password, 10)
 
@@ -12,7 +13,8 @@ export async function createClientWithArtists(
     data: {
       email,
       password: hashedPassword,
-      role: "CLIENT"
+      role: "CLIENT",
+      name: name || null,
     }
   })
 

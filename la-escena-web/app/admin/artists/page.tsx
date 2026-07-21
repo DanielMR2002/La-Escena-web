@@ -1,78 +1,50 @@
-export const dynamic = "force-dynamic"
+'use client'
 
-import Link from "next/link"
-import styles from "@/styles/admin.module.css"
-import { getArtists } from "@/services/artist.service"
-import { requireAdmin } from "@/lib/auth"
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import AdminArtistGrid from './AdminArtistGrid'
+import AgencyManagerModal from './AgencyManagerModal'
+import type { ArtistItem } from '@/app/admin/clients/ArtistCatalog'
 
-export default async function AdminArtistsPage() {
+export default function AdminArtistsPage() {
+  const [artists, setArtists]           = useState<ArtistItem[]>([])
+  const [showAgencyModal, setShowAgencyModal] = useState(false)
 
-  await requireAdmin()
-
-  const artists = await getArtists()
+  useEffect(() => {
+    fetch('/api/admin/artists/list')
+      .then(r => r.json())
+      .then(data => setArtists(data))
+  }, [])
 
   return (
     <div>
-      <h1 className={styles.pageTitle}>Artistas</h1>
-
-      {/* BOTÓN VER REVISIONES */}
-      <Link href="/admin/artists/revisions">
-        <button
-          className={styles.primaryButton}
-          style={{ marginRight: "10px" }}
-        >
-          Ver Revisiones
-        </button>
-      </Link>
-
-
-      {/* BOTÓN CREAR ARTISTA */}
-      <div style={{ marginBottom: "20px" }}>
-        <Link href="/admin/artists/create">
-          <button className={styles.primaryButton}>
-            + Crear Artista
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="font-heading text-4xl">Artistas</h1>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setShowAgencyModal(true)}
+            className="px-4 py-2 text-sm font-medium border border-zinc-300 rounded-lg hover:bg-zinc-100 transition-colors"
+          >
+            Gestionar Agencia
           </button>
-        </Link>
+          <Link href="/admin/artists/revisions">
+            <button className="px-4 py-2 text-sm font-medium border border-zinc-300 rounded-lg hover:bg-zinc-100 transition-colors">
+              Ver Revisiones
+            </button>
+          </Link>
+          <Link href="/admin/artists/create">
+            <button className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-red-700 transition-colors">
+              + Crear Artista
+            </button>
+          </Link>
+        </div>
       </div>
 
-      <div className={styles.card}>
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>Email</th>
-              <th>Estado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {artists.map((artist) => (
-              <tr key={artist.id}>
-                <td>{artist.user.email}</td>
+      <AdminArtistGrid artists={artists} />
 
-                <td
-                  className={
-                    artist.status === "PENDING"
-                      ? styles.statusPending
-                      : artist.status === "APPROVED"
-                      ? styles.statusApproved
-                      : styles.statusRejected
-                  }
-                >
-                  {artist.status}
-                </td>
-
-                <td>
-                  <Link href={`/admin/artists/${artist.id}`}>
-                    <button className={styles.secondaryButton}>
-                      Ver Perfil
-                    </button>
-                  </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {showAgencyModal && (
+        <AgencyManagerModal onClose={() => setShowAgencyModal(false)} />
+      )}
     </div>
   )
 }

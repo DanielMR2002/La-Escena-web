@@ -1,7 +1,27 @@
 import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { sanityWriteClient } from "@/lib/sanity"
+import { sanityFreshClient, sanityWriteClient } from "@/lib/sanity"
+
+function mergePendingPhotos(current: any[], pending: any[]) {
+  let result = [...current]
+  for (const p of pending) {
+    const category = p.photoCategory as string | undefined
+    if (category) {
+      const idx = result.findIndex((x) => x.photoCategory === category)
+      if (idx >= 0) {
+        result[idx] = p
+        continue
+      }
+      if (category === "headshot" && result.length > 0) {
+        result = [p, ...result]
+        continue
+      }
+    }
+    result.push(p)
+  }
+  return result
+}
 
 export async function POST(req: Request) {
   try {
@@ -10,10 +30,7 @@ export async function POST(req: Request) {
     const { id } = await req.json()
 
     if (!id) {
-      return NextResponse.json(
-        { error: "Missing revision id" },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: "Missing revision id" }, { status: 400 })
     }
 
     const revision = await prisma.artistProfileRevision.findUnique({
@@ -21,54 +38,58 @@ export async function POST(req: Request) {
     })
 
     if (!revision) {
-      return NextResponse.json(
-        { error: "Revision not found" },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: "Revision not found" }, { status: 404 })
     }
 
-    // Obtener perfil del artista
     const profile = await prisma.artistProfile.findUnique({
       where: { id: revision.artistId }
     })
 
-    if (!profile || !profile.sanityId) {
-      return NextResponse.json(
-        { error: "Artist not connected to Sanity" },
-        { status: 400 }
-      )
+    if (!profile) {
+      return NextResponse.json({ error: "Artist profile not found" }, { status: 404 })
     }
 
-    // 1️⃣ Actualizar documento en Sanity
-    await sanityWriteClient
-      .patch(profile.sanityId)
-      .set((revision.data ?? {}) as Record<string, any>)
-      .commit()
+    // Sync a Sanity solo si el artista ya está conectado
+    if (profile.sanityId) {
+      const { hasPendingMedia, ...sanityData } = (revision.data ?? {}) as Record<string, any>
 
-    // 2️⃣ Actualizar perfil en Prisma
+      const current = await sanityFreshClient.fetch(
+        `*[_type == "artist" && _id == $id][0]{ photos, pendingPhotos, videos, pendingVideos }`,
+        { id: profile.sanityId }
+      )
+
+      const mergedPhotos = mergePendingPhotos(current?.photos ?? [], current?.pendingPhotos ?? [])
+      const mergedVideos = [...(current?.videos ?? []), ...(current?.pendingVideos ?? [])]
+
+      await sanityWriteClient
+        .patch(profile.sanityId)
+        .set({
+          ...sanityData,
+          photos: mergedPhotos,
+          videos: mergedVideos,
+        })
+        .unset(["pendingPhotos", "pendingVideos"])
+        .commit()
+    }
+
     await prisma.artistProfile.update({
       where: { id: revision.artistId },
       data: {
         profileData: revision.data ?? {},
-        status: "APPROVED"
-      }
+        status: "APPROVED",
+        adminComment: null,
+        reviewedAt: new Date(),
+      },
     })
 
-    // 3️⃣ Eliminar todas las revisiones
     await prisma.artistProfileRevision.deleteMany({
-      where: {
-        artistId: revision.artistId
-      }
+      where: { artistId: revision.artistId },
     })
 
     return NextResponse.json({ success: true })
 
   } catch (error) {
     console.error("ERROR APPROVE:", error)
-
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
   }
 }

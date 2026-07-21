@@ -4,15 +4,17 @@ import { getClients } from "@/services/user.service"
 import { getArtists } from "@/services/artist.service"
 import { getPendingRevisionsCount } from "@/services/artist-revision.service"
 import { requireAdmin } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
 
 export default async function AdminDashboard() {
 
   await requireAdmin()
 
-  const [clients, artists, pendingRevisionsCount] = await Promise.all([
+  const [clients, artists, pendingRevisionsCount, pendingShortlistsCount] = await Promise.all([
     getClients(),
     getArtists(),
-    getPendingRevisionsCount()
+    getPendingRevisionsCount(),
+    prisma.clientShortlist.count({ where: { status: "PENDING" } }),
   ])
 
   return (
@@ -39,6 +41,13 @@ export default async function AdminDashboard() {
           <h3>Revisiones Pendientes</h3>
           <p style={{ fontSize: "28px", fontWeight: "bold" }}>
             {pendingRevisionsCount}
+          </p>
+        </div>
+
+        <div style={{ background: "white", padding: "20px", borderRadius: "10px" }}>
+          <h3>Shortlists Pendientes</h3>
+          <p style={{ fontSize: "28px", fontWeight: "bold" }}>
+            {pendingShortlistsCount}
           </p>
         </div>
 
