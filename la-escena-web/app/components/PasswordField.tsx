@@ -7,11 +7,13 @@ export default function PasswordField({
   label,
   value,
   onChange,
+  onBlur,
   placeholder = '••••••••',
 }: {
   label: string
   value: string
   onChange: (value: string) => void
+  onBlur?: () => void
   placeholder?: string
 }) {
   const [visible, setVisible] = useState(false)
@@ -24,6 +26,7 @@ export default function PasswordField({
           type={visible ? 'text' : 'password'}
           value={value}
           onChange={e => onChange(e.target.value)}
+          onBlur={onBlur}
           placeholder={placeholder}
           className="w-full px-3 py-2.5 pr-10 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
         />
