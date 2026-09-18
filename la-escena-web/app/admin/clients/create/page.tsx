@@ -84,7 +84,7 @@ export default function CreateClientPage() {
                 value={name}
                 onChange={e => setName(e.target.value)}
                 placeholder="Nombre del cliente o empresa"
-                className="px-3 py-2.5 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                className="px-3 py-2.5 border border-zinc-200 rounded-lg text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
               />
             </div>
 
@@ -97,7 +97,7 @@ export default function CreateClientPage() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="cliente@email.com"
-                className="px-3 py-2.5 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                className="px-3 py-2.5 border border-zinc-200 rounded-lg text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
               />
             </div>
 
