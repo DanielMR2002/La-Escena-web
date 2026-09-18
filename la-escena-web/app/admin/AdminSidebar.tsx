@@ -36,6 +36,11 @@ export default function AdminSidebar() {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [me, setMe] = useState<MeData | null>(null)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     try {
@@ -115,7 +120,7 @@ export default function AdminSidebar() {
 
       {/* MOBILE DRAWER */}
       <AnimatePresence>
-        {mobileOpen && (
+        {mounted && mobileOpen && (
           <>
             <motion.div
               initial={{ opacity: 0 }}
