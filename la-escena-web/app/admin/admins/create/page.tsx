@@ -59,7 +59,7 @@ export default function CreateAdminPage() {
             value={name}
             onChange={e => setName(e.target.value)}
             placeholder="Nombre completo"
-            className="px-3 py-2.5 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            className="px-3 py-2.5 border border-zinc-200 rounded-lg text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary/30"
           />
         </div>
 
@@ -70,7 +70,7 @@ export default function CreateAdminPage() {
             value={email}
             onChange={e => setEmail(e.target.value)}
             placeholder="admin@laescena.com"
-            className="px-3 py-2.5 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            className="px-3 py-2.5 border border-zinc-200 rounded-lg text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary/30"
           />
         </div>
 

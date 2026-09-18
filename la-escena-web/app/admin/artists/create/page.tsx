@@ -88,7 +88,7 @@ export default function CreateArtistPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               onBlur={() => setEmailTouched(true)}
-              className="w-full px-3 py-2 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+              className="w-full px-3 py-2 border border-zinc-200 rounded-lg text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
             />
             {emailTouched && email.length > 0 && !emailFormatValid && (
               <p className="text-xs text-red-600 mt-1.5">Ingresa un email válido</p>
