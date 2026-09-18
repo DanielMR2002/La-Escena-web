@@ -4,6 +4,8 @@ import { useState } from "react"
 import Link from "next/link"
 import PasswordField from "@/app/components/PasswordField"
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 export default function CreateArtistPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -11,12 +13,22 @@ export default function CreateArtistPage() {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
 
+  const [emailTouched, setEmailTouched] = useState(false)
+  const [passwordTouched, setPasswordTouched] = useState(false)
+  const [confirmTouched, setConfirmTouched] = useState(false)
+
+  const emailFormatValid = email === "" || EMAIL_REGEX.test(email)
   const passwordTooShort = password.length > 0 && password.length < 8
   const passwordMismatch = confirmPassword.length > 0 && password !== confirmPassword
-  const canSubmit = email && password.length >= 8 && password === confirmPassword
+  const canSubmit = !!email && EMAIL_REGEX.test(email) && password.length >= 8 && password === confirmPassword
 
   const handleSubmit = async () => {
-    if (!canSubmit) return
+    if (!canSubmit) {
+      setEmailTouched(true)
+      setPasswordTouched(true)
+      setConfirmTouched(true)
+      return
+    }
     setLoading(true)
     setMessage(null)
 
@@ -38,6 +50,9 @@ export default function CreateArtistPage() {
     setEmail("")
     setPassword("")
     setConfirmPassword("")
+    setEmailTouched(false)
+    setPasswordTouched(false)
+    setConfirmTouched(false)
   }
 
   return (
@@ -72,17 +87,31 @@ export default function CreateArtistPage() {
               placeholder="artista@ejemplo.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              onBlur={() => setEmailTouched(true)}
               className="w-full px-3 py-2 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
             />
+            {emailTouched && email.length > 0 && !emailFormatValid && (
+              <p className="text-xs text-red-600 mt-1.5">Ingresa un email válido</p>
+            )}
           </div>
 
-          <PasswordField label="Contraseña" value={password} onChange={setPassword} />
-          {passwordTooShort && (
+          <PasswordField
+            label="Contraseña"
+            value={password}
+            onChange={setPassword}
+            onBlur={() => setPasswordTouched(true)}
+          />
+          {passwordTouched && passwordTooShort && (
             <p className="text-xs text-red-600 -mt-3">Mínimo 8 caracteres</p>
           )}
 
-          <PasswordField label="Confirmar contraseña" value={confirmPassword} onChange={setConfirmPassword} />
-          {passwordMismatch && (
+          <PasswordField
+            label="Confirmar contraseña"
+            value={confirmPassword}
+            onChange={setConfirmPassword}
+            onBlur={() => setConfirmTouched(true)}
+          />
+          {confirmTouched && passwordMismatch && (
             <p className="text-xs text-red-600 -mt-3">Las contraseñas no coinciden</p>
           )}
 
