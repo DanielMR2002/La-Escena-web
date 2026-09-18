@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic"
 
-import { requireArtist } from "@/lib/auth"
+import { requireArtistOrAdmin } from "@/lib/auth"
 import { getInternalPosts, urlFor } from "@/lib/sanity"
 import NoticiasList from "@/app/artista/NoticiasList"
 import type { Metadata } from "next"
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 }
 
 export default async function ArtistNoticiesPage() {
-  await requireArtist()
+  await requireArtistOrAdmin()
 
   const rawPosts = await getInternalPosts()
 

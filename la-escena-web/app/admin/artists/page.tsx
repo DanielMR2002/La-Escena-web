@@ -3,12 +3,10 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import AdminArtistGrid from './AdminArtistGrid'
-import AgencyManagerModal from './AgencyManagerModal'
 import type { ArtistItem } from '@/app/admin/clients/ArtistCatalog'
 
 export default function AdminArtistsPage() {
-  const [artists, setArtists]           = useState<ArtistItem[]>([])
-  const [showAgencyModal, setShowAgencyModal] = useState(false)
+  const [artists, setArtists] = useState<ArtistItem[]>([])
 
   useEffect(() => {
     fetch('/api/admin/artists/list')
@@ -18,17 +16,21 @@ export default function AdminArtistsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="font-heading text-4xl">Artistas</h1>
+      <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
+        <div>
+          <p className="text-xs font-semibold tracking-widest text-primary uppercase mb-1">
+            {artists.length} perfiles registrados
+          </p>
+          <h1 className="font-heading text-4xl sm:text-5xl tracking-wide text-admin-foreground">Artistas</h1>
+        </div>
         <div className="flex gap-3">
-          <button
-            onClick={() => setShowAgencyModal(true)}
-            className="px-4 py-2 text-sm font-medium border border-zinc-300 rounded-lg hover:bg-zinc-100 transition-colors"
-          >
-            Gestionar Agencia
-          </button>
+          <Link href="/admin/agencia">
+            <button className="px-4 py-2 text-sm font-medium border border-admin-border rounded-lg text-admin-foreground hover:bg-white/5 transition-colors">
+              Gestionar Agencia
+            </button>
+          </Link>
           <Link href="/admin/artists/revisions">
-            <button className="px-4 py-2 text-sm font-medium border border-zinc-300 rounded-lg hover:bg-zinc-100 transition-colors">
+            <button className="px-4 py-2 text-sm font-medium border border-admin-border rounded-lg text-admin-foreground hover:bg-white/5 transition-colors">
               Ver Revisiones
             </button>
           </Link>
@@ -41,10 +43,6 @@ export default function AdminArtistsPage() {
       </div>
 
       <AdminArtistGrid artists={artists} />
-
-      {showAgencyModal && (
-        <AgencyManagerModal onClose={() => setShowAgencyModal(false)} />
-      )}
     </div>
   )
 }

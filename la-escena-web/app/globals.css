@@ -44,6 +44,14 @@
     --sidebar-accent-foreground: 0 0% 10%;
     --sidebar-border: 0 0% 91%;
     --sidebar-ring: 0 100% 44%;
+
+    /* Panel admin — siempre oscuro, independiente de .dark */
+    --admin-background: 0 0% 4%;
+    --admin-sidebar: 0 0% 5%;
+    --admin-elevated: 0 0% 8%;
+    --admin-border: 0 0% 12%;
+    --admin-foreground: 0 0% 95%;
+    --admin-muted: 0 0% 45%;
   }
 
   .dark {

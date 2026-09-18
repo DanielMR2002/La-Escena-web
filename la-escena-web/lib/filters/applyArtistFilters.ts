@@ -53,7 +53,7 @@ export function applyArtistFilters(artists: any[], filters: ArtistFiltersV2) {
       if (!matchesSelection) return false
     }
 
-    if (filters.availableOnly && artist.isAvailable !== true) return false
+    if (filters.availableOnly && artist.artistAvailability !== true) return false
 
     return true
   })

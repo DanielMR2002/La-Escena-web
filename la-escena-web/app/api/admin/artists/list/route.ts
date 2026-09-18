@@ -21,6 +21,7 @@ type SanityArtist = {
   photos:     any[]
   featured:   boolean | null
   visible:    boolean | null
+  artistAvailability: boolean | null
 }
 
 export async function GET() {
@@ -51,7 +52,8 @@ export async function GET() {
           hashtags,
           photos,
           featured,
-          visible
+          visible,
+          artistAvailability
         }`,
         { ids: sanityIds }
       )
@@ -79,6 +81,7 @@ export async function GET() {
         photo:      sanity?.photos?.[0] ?? null,
         featured:   sanity?.featured    ?? false,
         visible:    sanity?.visible     ?? false,
+        artistAvailability: sanity?.artistAvailability ?? null,
         status:     a.status,
       }
     })
