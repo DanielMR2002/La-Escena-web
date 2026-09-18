@@ -39,6 +39,13 @@ export default {
         },
         border: "hsl(var(--border))",
         card: "hsl(var(--card))",
+
+        "admin-background": "hsl(var(--admin-background))",
+        "admin-sidebar": "hsl(var(--admin-sidebar))",
+        "admin-elevated": "hsl(var(--admin-elevated))",
+        "admin-border": "hsl(var(--admin-border))",
+        "admin-foreground": "hsl(var(--admin-foreground))",
+        "admin-muted": "hsl(var(--admin-muted))",
       },
     },
   },

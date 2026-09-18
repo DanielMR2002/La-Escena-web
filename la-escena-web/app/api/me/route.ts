@@ -5,10 +5,11 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 import { prisma } from "@/lib/prisma"
 import { sanityClient, urlFor } from "@/lib/sanity"
+import { countUnreadMessages } from "@/services/message.service"
 
 export async function GET() {
   const session = await getServerSession(authOptions)
-  if (!session) return NextResponse.json({ name: null, photoUrl: null })
+  if (!session) return NextResponse.json({ name: null, photoUrl: null, email: null })
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
@@ -31,5 +32,9 @@ export async function GET() {
     }
   }
 
-  return NextResponse.json({ name, photoUrl })
+  const unreadMessages = (session.user.role === "ARTIST" || session.user.role === "ADMIN")
+    ? await countUnreadMessages(session.user.id)
+    : 0
+
+  return NextResponse.json({ name, photoUrl, unreadMessages, email: session.user.email })
 }

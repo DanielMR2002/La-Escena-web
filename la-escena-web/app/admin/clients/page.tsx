@@ -26,8 +26,13 @@ export default async function AdminClientsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="font-heading text-4xl">Clientes</h1>
+      <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
+        <div>
+          <p className="text-xs font-semibold tracking-widest text-primary uppercase mb-1">
+            {items.length} clientes registrados
+          </p>
+          <h1 className="font-heading text-4xl sm:text-5xl tracking-wide text-admin-foreground">Clientes</h1>
+        </div>
         <Link href="/admin/clients/create">
           <button className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-red-700 transition-colors">
             + Crear Cliente

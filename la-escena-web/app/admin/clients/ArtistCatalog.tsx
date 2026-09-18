@@ -29,6 +29,7 @@ export type ArtistItem = {
   hashtags:   string[]
   photo:      any | null
   status?:    string | null
+  artistAvailability?: boolean | null
 }
 
 export default function ArtistCatalog({

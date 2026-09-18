@@ -155,7 +155,7 @@ export async function getGalleryPhotos() {
 }
 
 export async function getArtistBySlug(slug: string) {
-  return sanityClient.fetch(
+  return sanityFreshClient.fetch(
     `
     *[_type == "artist" && slug.current == $slug][0]{
       _id,

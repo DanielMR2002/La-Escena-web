@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import nodemailer from 'nodemailer'
+import { sendMail } from '@/lib/mailer'
 
 export async function POST(req: Request) {
   const body = await req.json()
@@ -15,18 +15,9 @@ export async function POST(req: Request) {
     message
   } = body
 
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.CONTACT_EMAIL,
-      pass: process.env.CONTACT_EMAIL_PASSWORD
-    }
-  })
-
   try {
-    await transporter.sendMail({
-      from: `"La Escena Web" <${process.env.CONTACT_EMAIL}>`,
-      to: process.env.CONTACT_EMAIL,
+    await sendMail({
+      to: process.env.CONTACT_EMAIL!,
       subject: 'Nuevo contacto desde la web',
       html: `
         <h3>Nuevo mensaje de contacto</h3>

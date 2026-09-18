@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { ReactNode } from "react"
 import LogoutButton from "./LogoutButton"
+import InboxNavLink from "./InboxNavLink"
 
 export default function ArtistaLayout({ children }: { children: ReactNode }) {
   return (
@@ -14,6 +15,7 @@ export default function ArtistaLayout({ children }: { children: ReactNode }) {
           <Link href="/artista" className="text-sm text-zinc-300 hover:text-white transition-colors">
             Mi Perfil
           </Link>
+          <InboxNavLink />
           <Link href="/artista/noticias" className="text-sm text-zinc-300 hover:text-white transition-colors">
             Noticias
           </Link>

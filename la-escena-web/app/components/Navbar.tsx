@@ -19,19 +19,21 @@ const navLinks = [
   { label: "Blog",            path: "/blog" },
 ]
 
-type MenuItem = { label: string; href: string }
+type MenuItem = { label: string; href: string; badge?: number }
 
-function getMenuItems(role: string): MenuItem[] {
+function getMenuItems(role: string, unreadMessages: number): MenuItem[] {
   if (role === "ADMIN") {
     return [
       { label: "Panel Admin", href: "/admin" },
       { label: "Mi Perfil",   href: "/artista" },
-      { label: "Noticias",    href: "/admin/blog-interno" },
+      { label: "Buzón",       href: "/artista/mensajes", badge: unreadMessages },
+      { label: "Noticias",    href: "/artista/noticias" },
     ]
   }
   if (role === "ARTIST") {
     return [
       { label: "Mi Perfil", href: "/artista" },
+      { label: "Buzón",     href: "/artista/mensajes", badge: unreadMessages },
       { label: "Noticias",  href: "/artista/noticias" },
     ]
   }
@@ -47,7 +49,7 @@ function getLabel(role?: string) {
   return "Mi Cuenta"
 }
 
-type MeData = { name: string | null; photoUrl: string | null }
+type MeData = { name: string | null; photoUrl: string | null; unreadMessages?: number }
 
 export default function Navbar() {
   const [isOpen,   setIsOpen]   = useState(false)
@@ -58,12 +60,20 @@ export default function Navbar() {
   const { data: session, status } = useSession()
 
   const role  = session?.user.role
-  const items = role ? getMenuItems(role) : []
+  const items = role ? getMenuItems(role, me?.unreadMessages ?? 0) : []
 
   useEffect(() => {
     if (status !== "authenticated") { setMe(null); return }
     fetch("/api/me").then(r => r.json()).then(setMe).catch(() => {})
   }, [status])
+
+  useEffect(() => {
+    function handleRead() {
+      setMe(prev => prev ? { ...prev, unreadMessages: Math.max(0, (prev.unreadMessages ?? 0) - 1) } : prev)
+    }
+    window.addEventListener("la-escena:message-read", handleRead)
+    return () => window.removeEventListener("la-escena:message-read", handleRead)
+  }, [])
 
   // Cierra dropdown al hacer clic fuera
   useEffect(() => {
@@ -172,9 +182,14 @@ export default function Navbar() {
                         key={item.href}
                         href={item.href}
                         onClick={() => setMenuOpen(false)}
-                        className="block px-4 py-2.5 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors"
+                        className="flex items-center justify-between px-4 py-2.5 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors"
                       >
                         {item.label}
+                        {!!item.badge && (
+                          <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-[0.68rem] font-bold text-white">
+                            {item.badge}
+                          </span>
+                        )}
                       </Link>
                     ))}
                     <div className="my-1 border-t border-zinc-800" />
@@ -246,9 +261,14 @@ export default function Navbar() {
                         key={item.href}
                         href={item.href}
                         onClick={() => setIsOpen(false)}
-                        className="block px-4 py-3 text-sm font-medium text-primary-foreground/80 hover:text-secondary transition-colors"
+                        className="flex items-center justify-between px-4 py-3 text-sm font-medium text-primary-foreground/80 hover:text-secondary transition-colors"
                       >
                         {item.label}
+                        {!!item.badge && (
+                          <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-[0.68rem] font-bold text-white">
+                            {item.badge}
+                          </span>
+                        )}
                       </Link>
                     ))}
                     <button
