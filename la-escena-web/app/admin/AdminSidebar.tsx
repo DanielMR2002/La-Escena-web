@@ -37,9 +37,18 @@ export default function AdminSidebar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [me, setMe] = useState<MeData | null>(null)
   const [mounted, setMounted] = useState(false)
+  const [isDesktop, setIsDesktop] = useState(false)
 
   useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)")
+    setIsDesktop(mq.matches)
     setMounted(true)
+
+    function handleChange(e: MediaQueryListEvent) {
+      setIsDesktop(e.matches)
+    }
+    mq.addEventListener("change", handleChange)
+    return () => mq.removeEventListener("change", handleChange)
   }, [])
 
   useEffect(() => {
@@ -104,75 +113,17 @@ export default function AdminSidebar() {
 
   const initials = (me?.name ?? me?.email ?? "A")[0]?.toUpperCase() ?? "A"
 
-  return (
-    <>
-      {/* MOBILE TOP BAR */}
-      <div className="lg:hidden flex items-center justify-between px-4 h-16 bg-admin-sidebar border-b border-admin-border shrink-0">
-        <span className="font-heading text-xl text-primary tracking-wide">LA ESCENA</span>
-        <button
-          onClick={() => setMobileOpen(true)}
-          className="text-admin-foreground p-2"
-          aria-label="Abrir menú"
-        >
-          <Menu size={24} />
-        </button>
-      </div>
+  // Antes de montar no hay forma de saber el viewport real en el servidor,
+  // así que antes del mount se asume escritorio (caso más común) para no
+  // mostrar el sidebar de bienvenida vacío en el primer paint. Una vez
+  // montado, isDesktop manda: SOLO una de las dos ramas se renderiza —
+  // nunca ambas — por construcción, sin depender de CSS para ocultar.
+  const showDesktop = !mounted || isDesktop
 
-      {/* MOBILE DRAWER */}
-      <AnimatePresence>
-        {mounted && mobileOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setMobileOpen(false)}
-              className="lg:hidden fixed inset-0 z-40 bg-black/60"
-            />
-            <motion.aside
-              initial={{ x: "-100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
-              transition={{ duration: 0.25, ease: "easeOut" }}
-              className="lg:hidden fixed inset-y-0 left-0 z-50 w-72 bg-admin-sidebar border-r border-admin-border flex flex-col"
-            >
-              <div className="flex items-center justify-between px-6 py-6 border-b border-admin-border">
-                <div>
-                  <h2 className="font-heading text-2xl text-primary tracking-wide">LA ESCENA</h2>
-                  <span className="inline-block mt-1 px-2 py-0.5 text-[10px] font-semibold tracking-wide bg-primary/15 text-primary rounded">
-                    ADMIN
-                  </span>
-                </div>
-                <button onClick={() => setMobileOpen(false)} className="text-admin-muted hover:text-admin-foreground">
-                  <X size={22} />
-                </button>
-              </div>
-
-              <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-                {navItems.map(item => (
-                  <SidebarLink key={item.href} item={item} active={isActive(item.href)} collapsed={false} />
-                ))}
-                <div className="my-3 border-t border-admin-border" />
-                {secondaryItems.map(item => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className="block px-3 py-2 rounded-lg text-sm text-admin-muted hover:text-admin-foreground hover:bg-white/5 transition-colors"
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </nav>
-
-              <SidebarFooter me={me} initials={initials} collapsed={false} />
-            </motion.aside>
-          </>
-        )}
-      </AnimatePresence>
-
-      {/* DESKTOP SIDEBAR */}
+  if (showDesktop) {
+    return (
       <aside
-        className={`hidden lg:flex flex-col shrink-0 bg-admin-sidebar border-r border-admin-border transition-all duration-200 ${
+        className={`flex flex-col shrink-0 bg-admin-sidebar border-r border-admin-border transition-all duration-200 ${
           collapsed ? "w-20" : "w-60"
         }`}
       >
@@ -221,6 +172,74 @@ export default function AdminSidebar() {
 
         <SidebarFooter me={me} initials={initials} collapsed={collapsed} />
       </aside>
+    )
+  }
+
+  return (
+    <>
+      {/* MOBILE TOP BAR */}
+      <div className="flex items-center justify-between px-4 h-16 bg-admin-sidebar border-b border-admin-border shrink-0">
+        <span className="font-heading text-xl text-primary tracking-wide">LA ESCENA</span>
+        <button
+          onClick={() => setMobileOpen(true)}
+          className="text-admin-foreground p-2"
+          aria-label="Abrir menú"
+        >
+          <Menu size={24} />
+        </button>
+      </div>
+
+      {/* MOBILE DRAWER */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMobileOpen(false)}
+              className="fixed inset-0 z-40 bg-black/60"
+            />
+            <motion.aside
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className="fixed inset-y-0 left-0 z-50 w-72 bg-admin-sidebar border-r border-admin-border flex flex-col"
+            >
+              <div className="flex items-center justify-between px-6 py-6 border-b border-admin-border">
+                <div>
+                  <h2 className="font-heading text-2xl text-primary tracking-wide">LA ESCENA</h2>
+                  <span className="inline-block mt-1 px-2 py-0.5 text-[10px] font-semibold tracking-wide bg-primary/15 text-primary rounded">
+                    ADMIN
+                  </span>
+                </div>
+                <button onClick={() => setMobileOpen(false)} className="text-admin-muted hover:text-admin-foreground">
+                  <X size={22} />
+                </button>
+              </div>
+
+              <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+                {navItems.map(item => (
+                  <SidebarLink key={item.href} item={item} active={isActive(item.href)} collapsed={false} />
+                ))}
+                <div className="my-3 border-t border-admin-border" />
+                {secondaryItems.map(item => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="block px-3 py-2 rounded-lg text-sm text-admin-muted hover:text-admin-foreground hover:bg-white/5 transition-colors"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </nav>
+
+              <SidebarFooter me={me} initials={initials} collapsed={false} />
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
     </>
   )
 }
