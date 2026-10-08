@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from "react";
 
 const SECONDS_PER_CYCLE = 80;
 
-export default function MarqueeBrands({ brands }: { brands: string[] }) {
+type Brand = { name: string; src: string }
+
+export default function MarqueeBrands({ brands }: { brands: Brand[] }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -15,7 +17,7 @@ export default function MarqueeBrands({ brands }: { brands: string[] }) {
   const pointerStartXRef = useRef(0);
   const xAtDragStartRef = useRef(0);
 
-  const items = [...brands, ...brands, ...brands];
+  const items: Brand[] = [...brands, ...brands, ...brands];
 
   useEffect(() => {
     const measure = () => {
@@ -96,11 +98,18 @@ export default function MarqueeBrands({ brands }: { brands: string[] }) {
         <div ref={trackRef} className="flex w-max">
           {items.map((brand, i) => (
             <span
-              key={`${brand}-${i}`}
-              className="flex items-center shrink-0 whitespace-nowrap text-lg sm:text-xl font-medium text-foreground/70"
+              key={`${brand.name}-${i}`}
+              className="flex items-center shrink-0"
             >
-              {brand}
-              <span className="mx-6 sm:mx-8 text-foreground/30">·</span>
+              <span className="mx-8 sm:mx-12 flex items-center justify-center h-12 sm:h-14">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={brand.src}
+                  alt={brand.name}
+                  className="max-h-full max-w-[120px] sm:max-w-[140px] w-auto object-contain opacity-90 hover:opacity-100 transition-opacity duration-300"
+                  loading="lazy"
+                />
+              </span>
             </span>
           ))}
         </div>
