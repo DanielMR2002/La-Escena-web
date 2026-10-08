@@ -48,7 +48,7 @@ type SanityArtist = {
   instagram?:          string
   tiktok?:             string
   youtube?:            string
-  trayectoria?:        Array<{ proyecto: string; cliente: string; anio: number }>
+  trayectoria?:        { aniosBailando?: number; aniosExperiencia?: number; edad?: number; estatura?: number }
   photos:              SanityPhoto[]
   videos:              SanityVideo[]
   pendingPhotos?:      SanityPhoto[]
@@ -96,7 +96,7 @@ export default async function AdminArtistDetail({
         skills, agencyProfile,
         estilosPrincipales, estilosSecundarios, tipoPerfil,
         instagram, tiktok, youtube,
-        trayectoria[]{ proyecto, cliente, anio },
+        trayectoria{ aniosBailando, aniosExperiencia, edad, estatura },
         photos[]{ _key, asset, photoCategory },
         "videos": videos[]{ _key, url, title },
         pendingPhotos[]{ _key, asset, photoCategory },
@@ -208,17 +208,14 @@ export default async function AdminArtistDetail({
                 <DataField label="Color de cabello" value={revisionData?.hairColor} />
                 <DataField label="Perfil en la agencia" value={revisionData?.agencyProfile} />
                 <DataField label="Habilidades"      value={Array.isArray(revisionData?.skills) ? revisionData.skills.join(", ") : revisionData?.skills} />
-                {Array.isArray(revisionData?.trayectoria) && revisionData.trayectoria.length > 0 && (
+                {revisionData?.trayectoria && (
                   <div>
                     <dt className="text-xs font-medium text-zinc-400 uppercase tracking-wide">Trayectoria</dt>
-                    <dd className="mt-1 space-y-1">
-                      {revisionData.trayectoria.map((t: any, i: number) => (
-                        <div key={i} className="text-sm text-zinc-700 bg-amber-50 rounded px-2 py-1">
-                          <span className="font-medium">{t.proyecto}</span>
-                          {t.cliente && <span className="text-zinc-500"> · {t.cliente}</span>}
-                          {t.anio && <span className="text-zinc-400 text-xs"> · {t.anio}</span>}
-                        </div>
-                      ))}
+                    <dd className="mt-1 text-sm text-zinc-700 space-y-0.5">
+                      {revisionData.trayectoria.aniosBailando != null && <div>Años bailando: {revisionData.trayectoria.aniosBailando}</div>}
+                      {revisionData.trayectoria.aniosExperiencia != null && <div>Años experiencia: {revisionData.trayectoria.aniosExperiencia}</div>}
+                      {revisionData.trayectoria.edad != null && <div>Edad: {revisionData.trayectoria.edad}</div>}
+                      {revisionData.trayectoria.estatura != null && <div>Estatura: {revisionData.trayectoria.estatura} cm</div>}
                     </dd>
                   </div>
                 )}
