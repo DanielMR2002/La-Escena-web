@@ -86,7 +86,7 @@ export default function AboutClient() {
                       src={member.photo}
                       alt={member.name}
                       fill
-                      className="object-cover"
+                      className="object-cover object-top"
                       onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
                     />
                   ) : (
