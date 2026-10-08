@@ -16,12 +16,12 @@ const fadeUp = {
 };
 
 const services = [
-  { icon: Users, label: "Agencia de Bailarines", desc: "Talento curado para tus eventos y producciones. Castings de bailarines, coreógrafos, directores creativos, profesores." },
-  { icon: Sparkles, label: "Casting & Curaduría", desc: "Selección profesional del talento ideal" },
-  { icon: Music, label: "Shows & Performance", desc: "Espectáculos memorables para cualquier formato." },
-  { icon: Camera, label: "Book & Contenido", desc: "Fotografía y video profesional para artistas" },
-  { icon: Star, label: "Clases de Baile", desc: "Formación personalizada en múltiples estilos" },
-  { icon: GraduationCap, label: "Mentoría para Bailarines y Artistas", desc: "Cursos y mentorías para profesionalizar tu danza y generar más oportunidades dentro de la industria." },
+  { icon: Users, label: "Agencia de Bailarines", desc: "Talento curado para tus eventos y producciones. Castings de bailarines, coreógrafos, directores creativos, profesores.", href: "/agencia" },
+  { icon: Sparkles, label: "Casting & Curaduría", desc: "Selección profesional del talento ideal para cada proyecto.", href: "/agencia" },
+  { icon: Music, label: "Shows & Performance", desc: "Espectáculos memorables para cualquier formato: eventos, activaciones y shows en vivo.", href: "/shows" },
+  { icon: Camera, label: "Book & Contenido", desc: "Fotografía y video profesional para artistas.", href: "/book" },
+  { icon: Star, label: "Clases de Baile", desc: "Formación personalizada en múltiples estilos.", href: "/clases" },
+  { icon: GraduationCap, label: "Mentoría para Bailarines y Artistas", desc: "Cursos y mentorías para profesionalizar tu danza y generar más oportunidades dentro de la industria.", href: "/mentoria" },
 ];
 
 const differentiators = [
@@ -111,47 +111,60 @@ export default function HomeClient() {
       {/* Qué Hacemos */}
       <section className="py-24 bg-background">
         <div className="container">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            className="text-center mb-16"
-          >
-            <motion.span
-              variants={fadeUp}
-              custom={0}
-              className="text-sm font-semibold uppercase tracking-widest text-accent"
-            >
+          <div className="text-center mb-16">
+            <span className="text-sm font-semibold uppercase tracking-widest text-accent">
               Nuestros Servicios
-            </motion.span>
-            <motion.h2
-              variants={fadeUp}
-              custom={1}
-              className="font-heading text-5xl sm:text-6xl mt-3 tracking-wide"
-            >
+            </span>
+            <h2 className="font-heading text-5xl sm:text-6xl mt-3 tracking-wide">
               Qué Hacemos
-            </motion.h2>
-          </motion.div>
+            </h2>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {services.map((service, i) => (
-              <motion.div
-                key={service.label}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                variants={fadeUp}
-                custom={i}
-                className="group p-8 bg-card rounded-lg border border-border hover:border-accent/50 transition-all hover:shadow-lg hover:shadow-accent/5"
-              >
-                <div className="w-12 h-12 flex items-center justify-center rounded-lg bg-accent/10 text-accent mb-5 group-hover:bg-accent group-hover:text-accent-foreground transition-colors">
-                  <service.icon size={24} />
-                </div>
-                <h3 className="font-heading text-xl tracking-wide mb-2">{service.label}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{service.desc}</p>
-              </motion.div>
+            {services.map((service) => (
+              <div key={service.label}>
+                <Link
+                  href={service.href}
+                  className="group block h-full p-8 bg-card rounded-lg border border-border hover:border-accent/50 transition-all hover:shadow-lg hover:shadow-accent/5 hover:-translate-y-1 cursor-pointer"
+                >
+                  <div className="w-12 h-12 flex items-center justify-center rounded-lg bg-accent/10 text-accent mb-5 group-hover:bg-accent group-hover:text-accent-foreground transition-colors">
+                    <service.icon size={24} />
+                  </div>
+                  <h3 className="font-heading text-xl tracking-wide mb-2">{service.label}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{service.desc}</p>
+                </Link>
+              </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Mentoría — CTA destacado */}
+      <section className="py-20 bg-muted">
+        <div className="container">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="max-w-3xl mx-auto text-center space-y-6"
+          >
+            <GraduationCap size={40} className="text-accent mx-auto" />
+            <h2 className="font-heading text-4xl sm:text-5xl tracking-wide text-foreground">
+              ¿Quieres mentoría personalizada?
+            </h2>
+            <p className="text-muted-foreground max-w-xl mx-auto">
+              Diseñamos un acompañamiento 1 a 1 según tu momento artístico, para ayudarte a
+              profesionalizar tu carrera y encontrar más oportunidades en la industria.
+            </p>
+            <p>
+              
+            </p>
+            <Link href="/contacto">
+              <button className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-primary-foreground font-semibold text-sm uppercase tracking-wider rounded-sm hover:bg-primary/90 transition-all hover:gap-3">
+                Quiero mentoría personalizada <ArrowRight size={16} />
+              </button>
+            </Link>
+          </motion.div>
         </div>
       </section>
 

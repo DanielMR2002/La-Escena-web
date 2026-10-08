@@ -35,6 +35,44 @@ export default function ArtistVideoManager({ sanityId, videos, pendingVideos }: 
   const [videoTitle, setVideoTitle]   = useState("")
   const [error, setError]             = useState<string | null>(null)
 
+  const [fileUploading, setFileUploading] = useState(false)
+  const [fileUploadError, setFileUploadError] = useState<string | null>(null)
+  const [fileUploadName, setFileUploadName] = useState<string | null>(null)
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setFileUploadError(null)
+    setFileUploadName(null)
+    setFileUploading(true)
+    const fd = new FormData()
+    fd.append("file", file)
+    const res = await fetch("/api/artist/video/upload", { method: "POST", body: fd })
+    if (res.ok) {
+      const { url } = await res.json()
+      // Save to Sanity via the same add endpoint
+      const addRes = await fetch("/api/artist/videos/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sanityId, url, title: file.name }),
+      })
+      if (addRes.ok) {
+        const { video } = await addRes.json()
+        setLocalPendingVideos((prev) => [...prev, video])
+        setFileUploadName(file.name)
+        router.refresh()
+      } else {
+        const d = await addRes.json().catch(() => ({ error: "Error al guardar el video." }))
+        setFileUploadError(d.error ?? "Error al guardar el video.")
+      }
+    } else {
+      const d = await res.json().catch(() => ({ error: "Error al subir el video." }))
+      setFileUploadError(d.error ?? "Error al subir el video.")
+    }
+    setFileUploading(false)
+    e.target.value = ""
+  }
+
   const atVideoLimit = localPendingVideos.length >= VIDEO_LIMIT
 
   async function handleVideoAdd() {
@@ -169,6 +207,21 @@ export default function ArtistVideoManager({ sanityId, videos, pendingVideos }: 
           >
             {addingVideo ? "Agregando…" : "Agregar video"}
           </button>
+
+          <div className="pt-3 border-t border-zinc-100">
+            <p className="text-xs font-medium text-zinc-400 uppercase tracking-wide mb-2">O sube un archivo de video</p>
+            <p className="text-xs text-zinc-400 mb-2">mp4, mov, avi, webm · máx. 200 MB</p>
+            <input
+              type="file"
+              accept="video/mp4,video/quicktime,video/x-msvideo,video/webm"
+              onChange={handleFileUpload}
+              disabled={fileUploading}
+              className="text-sm"
+            />
+            {fileUploading && <p className="mt-1 text-xs text-zinc-400">Subiendo video...</p>}
+            {fileUploadName && !fileUploading && <p className="mt-1 text-xs text-green-600">✓ {fileUploadName}</p>}
+            {fileUploadError && <p className="mt-1 text-xs text-red-600">{fileUploadError}</p>}
+          </div>
         </div>
       )}
     </div>

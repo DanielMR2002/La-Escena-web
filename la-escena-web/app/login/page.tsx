@@ -54,18 +54,18 @@ export default function LoginPage() {
   return (
     <>
       {/* HERO */}
-      <section className="bg-foreground py-16">
+      <section className="bg-background py-16">
         <div className="container max-w-4xl mx-auto">
           <button
             onClick={() => router.push('/')}
-            className="inline-flex items-center gap-1.5 text-sm text-primary-foreground/60 hover:text-primary-foreground transition-colors mb-8"
+            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"
           >
             <ArrowLeft size={16} />
             Volver
           </button>
 
           <div className="text-center">
-            <div className="bg-white rounded-xl p-4 inline-block mx-auto mb-6">
+            <div className="bg-white rounded-xl p-4 inline-block mx-auto mb-6 shadow-sm border border-border">
               <Image
                 src="/logo-color.png"
                 alt="La Escena"
@@ -73,7 +73,7 @@ export default function LoginPage() {
                 height={72}
               />
             </div>
-            <h1 className="font-heading text-4xl sm:text-5xl tracking-wide text-primary-foreground">
+            <h1 className="font-heading text-4xl sm:text-5xl tracking-wide text-foreground">
               Bienvenido a <span className="text-secondary">La Escena</span>
             </h1>
           </div>

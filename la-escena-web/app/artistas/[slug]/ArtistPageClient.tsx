@@ -3,29 +3,19 @@
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { motion } from 'framer-motion'
+import { useState, useCallback } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
-  ArrowLeft, MapPin, Clock, Download, Play, Quote,
+  ArrowLeft, MapPin, Download, MessageCircle,
   Ruler, Dumbbell, Eye, Scissors, Palette,
+  Play, Quote, GraduationCap, Music2, Video, Camera,
+  ChevronLeft, ChevronRight, X,
 } from 'lucide-react'
 import { urlFor } from '@/lib/sanity'
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 40 },
-  visible: { opacity: 1, y: 0 },
-}
-
-function SectionTitle({ children, light }: { children: React.ReactNode; light?: boolean }) {
-  return (
-    <div className="mb-10">
-      <h2 className={`font-heading text-5xl sm:text-6xl tracking-wide ${light ? 'text-primary-foreground' : 'text-foreground'}`}>
-        {children}
-      </h2>
-      <div className="w-16 h-1 bg-primary mt-3" />
-    </div>
-  )
-}
-
+/* ------------------------------------------------------------------ */
+/* Helpers                                                              */
+/* ------------------------------------------------------------------ */
 function youtubeId(url: string) {
   const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/))([^&\n?#]+)/)
   return m ? m[1] : null
@@ -36,65 +26,235 @@ function getThumbnail(url: string) {
   return ytId ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` : null
 }
 
+function getCategoryLabel(artist: any): string {
+  const ap = artist.agencyProfile
+  if (Array.isArray(ap)) return ap.join(' · ')
+  return ap || artist.category || ''
+}
+
+/* ------------------------------------------------------------------ */
+/* Lightbox                                                             */
+/* ------------------------------------------------------------------ */
+function Lightbox({
+  photos,
+  startIndex,
+  onClose,
+}: {
+  photos: any[]
+  startIndex: number
+  onClose: () => void
+}) {
+  const [current, setCurrent] = useState(startIndex)
+
+  const prev = useCallback(() => setCurrent((c) => (c - 1 + photos.length) % photos.length), [photos.length])
+  const next = useCallback(() => setCurrent((c) => (c + 1) % photos.length), [photos.length])
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
+        onClick={onClose}
+      >
+        {/* Close */}
+        <button
+          className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors z-10"
+          onClick={onClose}
+        >
+          <X size={20} />
+        </button>
+
+        {/* Prev */}
+        <button
+          className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors z-10"
+          onClick={(e) => { e.stopPropagation(); prev() }}
+        >
+          <ChevronLeft size={24} />
+        </button>
+
+        {/* Image */}
+        <div
+          className="relative w-full max-w-4xl max-h-[85vh] mx-16"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <motion.div
+            key={current}
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.2 }}
+            className="relative"
+            style={{ aspectRatio: '4/3' }}
+          >
+            <Image
+              src={urlFor(photos[current]).width(1200).height(900).url()}
+              alt={`Foto ${current + 1}`}
+              fill
+              className="object-contain"
+            />
+          </motion.div>
+          <p className="text-center text-white/50 text-sm mt-3">
+            {current + 1} / {photos.length}
+          </p>
+        </div>
+
+        {/* Next */}
+        <button
+          className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors z-10"
+          onClick={(e) => { e.stopPropagation(); next() }}
+        >
+          <ChevronRight size={24} />
+        </button>
+      </motion.div>
+    </AnimatePresence>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* Sub-components                                                        */
+/* ------------------------------------------------------------------ */
+const fadeUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.08, duration: 0.55, ease: [0.25, 0.46, 0.45, 0.94] as const },
+  }),
+}
+
+function SectionTitle({ children, light = false }: { children: React.ReactNode; light?: boolean }) {
+  return (
+    <div className="mb-10 space-y-3">
+      <h2 className={`font-heading text-4xl sm:text-5xl tracking-wide ${light ? 'text-primary-foreground' : 'text-foreground'}`}>
+        {children}
+      </h2>
+      <div className="w-16 h-1 bg-primary" />
+    </div>
+  )
+}
+
+const availabilityStyles: Record<string, { dot: string; text: string }> = {
+  'Disponible':               { dot: 'bg-emerald-500', text: 'text-emerald-400' },
+  'Parcialmente disponible':  { dot: 'bg-secondary',   text: 'text-secondary'   },
+  'No disponible':            { dot: 'bg-muted-foreground', text: 'text-muted-foreground' },
+}
+
+/* ------------------------------------------------------------------ */
+/* Main component                                                        */
+/* ------------------------------------------------------------------ */
 export default function ArtistPageClient({ artist }: { artist: any }) {
   const router = useRouter()
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+  const [activeGroup, setActiveGroup] = useState(0)
 
-  const photos: any[] = artist.photos ?? []
-  const videos: any[] = artist.videos ?? []
-  const trayectoria: any[] = artist.trayectoria ?? []
+  /* ---- data derivation ---- */
+  const photos: any[]  = artist.photos ?? []
+  const videos: any[]  = artist.videos ?? []
   const skills: string[] = artist.skills ?? []
-  const styles: string[] = artist.styles ?? []
   const tiposClase: string[] = artist.esProfesor ? (artist.tiposClase ?? []) : []
+  const niveles: string[]   = artist.esProfesor ? (artist.niveles  ?? []) : []
+  const horarios: string[]  = artist.esProfesor ? (artist.horarios ?? []) : []
 
-  const mainPhoto = photos[0]
-  const galleryPhotos = photos.slice(1)
-  const categoryLabel = artist.agencyProfile || artist.category
+  const estilosPrincipales: string[] = artist.estilosPrincipales ?? []
+  const estilosSecundarios: string[] = artist.estilosSecundarios ?? []
+  const hasSplitStyles = estilosPrincipales.length > 0 || estilosSecundarios.length > 0
+  const legacyStyles: string[] = !hasSplitStyles ? (artist.styles ?? []) : []
+
+  const hashtags: string[]   = artist.hashtags ?? []
+  const tipoPerfil: string[] = Array.isArray(artist.tipoPerfil)
+    ? artist.tipoPerfil
+    : (artist.tipoPerfil ? [artist.tipoPerfil] : [])
+  const artistAvailability: string = artist.artistAvailability ?? ''
+  const genero: string = artist.genero ?? ''
+
+  const mainPhoto    = photos.find((p: any) => p.photoCategory === 'headshot') ?? photos[0]
+  const galleryPhotos = photos.filter((p: any) => p.photoCategory !== 'headshot' && p !== mainPhoto)
+  const categoryLabel = getCategoryLabel(artist)
+  const hasCv = Boolean(artist.cvUrl || artist.cvPdfUrl)
+
+  const pruebasAprobadas: any[] = artist.pruebasTrabajoAprobadas ?? []
+
+  const showSocial = artist.socialLinksPublic === true
+  const socialLinks = [
+    { name: "Instagram", url: artist.instagram, Icon: Camera },
+    { name: "TikTok", url: artist.tiktok, Icon: Music2 },
+    { name: "YouTube", url: artist.youtube, Icon: Video },
+  ].filter(s => showSocial && Boolean(s.url))
 
   const physicalItems = [
-    artist.height != null && { icon: Ruler, label: 'Estatura', value: `${artist.height} cm` },
-    artist.complexion && { icon: Dumbbell, label: 'Complexión', value: artist.complexion },
-    artist.eyeColor && { icon: Eye, label: 'Color de ojos', value: artist.eyeColor },
-    artist.hairType && { icon: Scissors, label: 'Tipo de cabello', value: artist.hairType },
-    artist.hairLength && { icon: Scissors, label: 'Largo de cabello', value: artist.hairLength },
-    artist.hairColor && { icon: Palette, label: 'Color de cabello', value: artist.hairColor },
+    artist.height    != null && { icon: Ruler,    label: 'Estatura',        value: `${artist.height} cm` },
+    artist.complexion       && { icon: Dumbbell,  label: 'Complexión',      value: artist.complexion     },
+    artist.eyeColor         && { icon: Eye,       label: 'Color de ojos',   value: artist.eyeColor       },
+    artist.hairType         && { icon: Scissors,  label: 'Tipo cabello',    value: artist.hairType       },
+    artist.hairLength       && { icon: Scissors,  label: 'Largo cabello',   value: artist.hairLength     },
+    artist.hairColor        && { icon: Palette,   label: 'Color cabello',   value: artist.hairColor      },
   ].filter(Boolean) as Array<{ icon: any; label: string; value: string }>
 
-  const hasExperienceSection =
-    artist.experience != null || artist.projectTypes || artist.experienceDescription ||
-    artist.featuredProjects || trayectoria.length > 0
+  const trayectoriaRaw = artist.trayectoria
+  const trayectoriaObj = !Array.isArray(trayectoriaRaw) && trayectoriaRaw ? trayectoriaRaw : null
+  const trayectoriaCards = trayectoriaObj ? [
+    { value: trayectoriaObj.aniosBailando,    label: 'Años bailando'       },
+    { value: trayectoriaObj.aniosExperiencia, label: 'Años de experiencia' },
+    { value: trayectoriaObj.edad,             label: 'Edad'                },
+    { value: trayectoriaObj.estatura,         label: 'Estatura (cm)'       },
+  ].filter(c => c.value != null) : []
 
   const bioParagraphs: string[] = artist.description
     ? artist.description.split('\n\n').filter(Boolean)
     : []
-  const bioQuote = bioParagraphs[0]
-  const bioRest = bioParagraphs.slice(1)
+
+  const availability = availabilityStyles[artistAvailability] ?? availabilityStyles['No disponible']
+
+  const heroStyles = hashtags.length > 0 ? hashtags
+    : estilosPrincipales.length > 0 ? estilosPrincipales
+    : legacyStyles
+
+  // Agrupar galería en secciones iguales al editor
+  const SECTION_CATS = [
+    ['perfil_derecho','perfil_izquierdo','cuerpo_entero'],
+    ['expresion_1','expresion_2','expresion_3'],
+    ['conceptual_1','conceptual_2','conceptual_3'],
+  ]
+  const categorized = new Set(SECTION_CATS.flat())
+  const taggedPhotos = galleryPhotos.map((p: any, i: number) => ({ ...p, _lightboxIdx: i }))
+  const galleryGroups: Array<{ photos: any[] }> = [
+    ...SECTION_CATS.map(cats => ({ photos: taggedPhotos.filter((p: any) => cats.includes(p.photoCategory)) })),
+    { photos: taggedPhotos.filter((p: any) => !p.photoCategory || !categorized.has(p.photoCategory)) },
+  ].filter(g => g.photos.length > 0)
+
+  // Contar columnas activas para Características y Habilidades
+  const hasCharacteristics = physicalItems.length > 0
+  const hasSkills = skills.length > 0
+  const hasProfesor = artist.esProfesor
+  const activeColCount = [hasCharacteristics, hasSkills, hasProfesor].filter(Boolean).length
 
   return (
     <>
-      {/* 1. HERO */}
+      {/* ============================= HERO ============================= */}
       <section className="relative bg-foreground overflow-hidden">
-        <div className="absolute -top-32 -left-32 w-[500px] h-[500px] bg-primary/30 rounded-full blur-[140px] pointer-events-none" />
-        <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] bg-secondary/20 rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute inset-0 opacity-20 pointer-events-none">
+          <div className="absolute top-40 right-20 w-96 h-96 rounded-full bg-primary/40 blur-[140px]" />
+          <div className="absolute bottom-20 left-40 w-72 h-72 rounded-full bg-secondary/30 blur-[120px]" />
+        </div>
 
-        <div className="container relative py-24 sm:py-32">
+        <div className="container relative z-10 py-16 lg:py-24">
           <button
             onClick={() => router.back()}
             className="inline-flex items-center gap-1.5 text-sm text-primary-foreground/60 hover:text-primary-foreground transition-colors mb-10"
           >
-            <ArrowLeft size={16} />
-            Volver
+            <ArrowLeft size={16} /> Volver
           </button>
 
-          <div className="grid md:grid-cols-5 gap-10 items-center">
+          <div className="grid lg:grid-cols-5 gap-10 lg:gap-16 items-center">
+            {/* Foto principal */}
             <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={fadeUp}
-              transition={{ duration: 0.6 }}
-              className="md:col-span-2"
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.7 }}
+              className="lg:col-span-2"
             >
-              <div className="relative aspect-[3/4] rounded-lg overflow-hidden bg-muted">
+              <div className="relative aspect-[3/4] rounded-lg overflow-hidden ring-1 ring-primary-foreground/10 shadow-2xl">
                 {mainPhoto ? (
                   <Image
                     src={urlFor(mainPhoto).width(800).height(1067).url()}
@@ -108,80 +268,146 @@ export default function ArtistPageClient({ artist }: { artist: any }) {
                     Sin imagen
                   </div>
                 )}
-                <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-foreground to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent" />
               </div>
             </motion.div>
 
+            {/* Info */}
             <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={fadeUp}
-              transition={{ duration: 0.6, delay: 0.15 }}
-              className="md:col-span-3"
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.7, delay: 0.1 }}
+              className="lg:col-span-3 space-y-5"
             >
-              {(artist.esProfesor || tiposClase.length > 0) && (
-                <div className="flex flex-wrap gap-2 mb-5">
-                  {artist.esProfesor && (
-                    <span className="px-3 py-1 text-xs font-semibold uppercase tracking-wider bg-secondary text-secondary-foreground rounded-full">
-                      Profesor
-                    </span>
-                  )}
-                  {tiposClase.map((tipo) => (
+              {/* 1. Chips estilos de baile */}
+              {heroStyles.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {heroStyles.map((h) => (
                     <span
-                      key={tipo}
-                      className="px-3 py-1 text-xs font-semibold uppercase tracking-wider bg-secondary/10 border border-secondary/40 text-secondary rounded-full"
+                      key={h}
+                      className="bg-primary/20 border border-primary/50 text-primary rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider"
                     >
-                      {tipo}
+                      {h}
                     </span>
                   ))}
                 </div>
               )}
 
-              <h1 className="font-heading text-7xl sm:text-8xl md:text-9xl tracking-wide text-primary-foreground leading-none">
+              {/* 2. Nombre */}
+              <h1 className="font-heading text-6xl sm:text-7xl lg:text-8xl leading-[0.9] tracking-wide text-primary-foreground uppercase">
                 {artist.name}
               </h1>
 
+              {/* 3. Categoría */}
               {categoryLabel && (
-                <div className="mt-5 inline-block">
-                  <p className="text-xl text-primary font-medium">{categoryLabel}</p>
-                  <div className="w-12 h-0.5 bg-primary mt-2" />
+                <div className="inline-block">
+                  <p className="font-heading text-2xl sm:text-3xl tracking-wide text-primary uppercase">
+                    {categoryLabel}
+                  </p>
+                  <div className="w-full h-0.5 bg-primary mt-1" />
                 </div>
               )}
 
-              <div className="flex flex-wrap gap-x-6 gap-y-2 mt-6">
+              {/* 4. Género */}
+              {genero && (
+                <span className="inline-block px-3 py-1 bg-primary-foreground/10 text-primary-foreground/70 border border-primary-foreground/20 rounded-full text-xs font-medium uppercase tracking-wider">
+                  {genero}
+                </span>
+              )}
+
+              {/* 5. Ciudad + experiencia */}
+              <div className="flex flex-wrap gap-6 pt-1">
                 {artist.city && (
-                  <div className="flex items-center gap-2">
-                    <MapPin size={18} className="text-secondary shrink-0" />
-                    <span className="text-primary-foreground/80">{artist.city}</span>
+                  <div className="flex items-center gap-2 text-primary-foreground/70">
+                    <MapPin size={18} className="text-secondary" />
+                    <span className="text-sm font-medium">{artist.city}</span>
                   </div>
                 )}
-                {artist.experience != null && (
-                  <div className="flex items-center gap-2">
-                    <Clock size={18} className="text-secondary shrink-0" />
-                    <span className="text-primary-foreground/80">
-                      {artist.experience} {artist.experience === 1 ? 'año' : 'años'} de experiencia
+                {trayectoriaObj?.aniosExperiencia != null && (
+                  <div className="flex items-center gap-2 text-primary-foreground/70">
+                    <GraduationCap size={18} className="text-secondary" />
+                    <span className="text-sm font-medium">
+                      {trayectoriaObj.aniosExperiencia} años de experiencia
                     </span>
                   </div>
                 )}
               </div>
 
-              <div className="flex flex-wrap gap-4 mt-9">
+              {/* 6. Disponibilidad */}
+              {artistAvailability && (
+                <div className="flex items-center gap-2.5">
+                  <span className={`w-2.5 h-2.5 rounded-full ${availability.dot}`} />
+                  <span className={`text-sm font-semibold uppercase tracking-wider ${availability.text}`}>
+                    {artistAvailability}
+                  </span>
+                </div>
+              )}
+
+              {/* 7. Tipo de perfil */}
+              {tipoPerfil.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {tipoPerfil.map((t) => (
+                    <span
+                      key={t}
+                      className="px-3 py-1 bg-secondary/10 text-secondary border border-secondary/40 rounded-full text-xs font-semibold uppercase tracking-wider"
+                    >
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* 8. Profesor + tipos de clase */}
+              {artist.esProfesor && (
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-secondary text-secondary-foreground rounded-sm text-xs font-bold uppercase tracking-widest">
+                    <GraduationCap size={14} /> Profesor
+                  </span>
+                  {tiposClase.map((t) => (
+                    <span
+                      key={t}
+                      className="px-3 py-1 bg-secondary/10 text-secondary border border-secondary/30 rounded-full text-xs font-medium uppercase tracking-wider"
+                    >
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* 9. Redes sociales */}
+              {socialLinks.length > 0 && (
+                <div className="flex flex-wrap gap-3 pt-1">
+                  {socialLinks.map(({ name, url, Icon }) => (
+                    <a
+                      key={name}
+                      href={url!}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={name}
+                      className="w-10 h-10 rounded-full border border-primary-foreground/20 text-primary-foreground/70 flex items-center justify-center hover:border-secondary hover:text-secondary transition-colors"
+                    >
+                      <Icon size={18} />
+                    </a>
+                  ))}
+                </div>
+              )}
+
+              {/* 10. Botones */}
+              <div className="flex flex-wrap gap-3 pt-3">
                 <Link
                   href="/contacto"
-                  className="inline-flex items-center gap-2 px-8 py-3.5 bg-primary text-primary-foreground font-semibold text-sm uppercase tracking-wider rounded-sm hover:bg-primary/90 transition-colors"
+                  className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-primary-foreground font-semibold text-sm uppercase tracking-wider rounded-sm hover:bg-primary/90 transition-all hover:gap-3"
                 >
-                  Contactar
+                  <MessageCircle size={16} /> Contactar
                 </Link>
-                {artist.cvUrl && (
+                {hasCv && (
                   <a
-                    href={artist.cvUrl}
+                    href={artist.cvPdfUrl || artist.cvUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-8 py-3.5 border border-primary-foreground/30 text-primary-foreground font-semibold text-sm uppercase tracking-wider rounded-sm hover:bg-primary-foreground/10 transition-colors"
+                    className="inline-flex items-center gap-2 px-8 py-4 border border-primary-foreground/30 text-primary-foreground font-semibold text-sm uppercase tracking-wider rounded-sm hover:border-secondary hover:text-secondary transition-colors"
                   >
-                    <Download size={16} />
-                    Descargar CV
+                    <Download size={16} /> Descargar CV
                   </a>
                 )}
               </div>
@@ -190,260 +416,386 @@ export default function ArtistPageClient({ artist }: { artist: any }) {
         </div>
       </section>
 
-      {/* 2. GALERÍA */}
-      {galleryPhotos.length > 0 && (
+      {/* ====================== ESTILOS DE BAILE ======================== */}
+      {(hasSplitStyles || legacyStyles.length > 0) && (
         <motion.section
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeUp}
-          transition={{ duration: 0.6 }}
-          className="bg-muted py-24"
+          initial="hidden" whileInView="visible" viewport={{ once: true }}
+          variants={fadeUp} transition={{ duration: 0.6 }}
+          className="py-20 bg-muted"
         >
           <div className="container">
-            <SectionTitle>GALERÍA</SectionTitle>
-            <div className="grid grid-cols-2 sm:grid-cols-4 auto-rows-[220px] gap-4">
-              {galleryPhotos.map((photo: any, i: number) => (
-                <div
-                  key={photo._key ?? i}
-                  className={`relative rounded-lg overflow-hidden group ${i === 0 ? 'col-span-2 row-span-2' : ''}`}
-                >
-                  <Image
-                    src={urlFor(photo).width(i === 0 ? 800 : 400).height(i === 0 ? 800 : 400).url()}
-                    alt={artist.name}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/30 transition-colors" />
+            <SectionTitle>Estilos de Baile</SectionTitle>
+            {/* Centrado cuando solo hay un bloque (sin secundarios o sin principales) */}
+            <div className={`space-y-8 ${!hasSplitStyles || (estilosPrincipales.length === 0 || estilosSecundarios.length === 0) ? 'flex flex-col items-center text-center' : ''}`}>
+              {estilosPrincipales.length > 0 && (
+                <div>
+                  {estilosSecundarios.length > 0 && (
+                    <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">Principales</p>
+                  )}
+                  <div className="flex flex-wrap justify-center gap-3">
+                    {estilosPrincipales.map((s) => (
+                      <span key={s} className="px-6 py-3 bg-primary text-primary-foreground rounded-full font-heading text-2xl tracking-wide uppercase">
+                        {s}
+                      </span>
+                    ))}
+                  </div>
                 </div>
+              )}
+              {estilosSecundarios.length > 0 && (
+                <div>
+                  {estilosPrincipales.length > 0 && (
+                    <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">Secundarios</p>
+                  )}
+                  <div className="flex flex-wrap justify-center gap-3">
+                    {estilosSecundarios.map((s) => (
+                      <span key={s} className="px-6 py-3 bg-accent/15 text-accent border border-accent/40 rounded-full font-heading text-2xl tracking-wide uppercase">
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {!hasSplitStyles && legacyStyles.length > 0 && (
+                <div className="flex flex-wrap justify-center gap-3">
+                  {legacyStyles.map((s) => (
+                    <span key={s} className="px-6 py-3 bg-primary text-primary-foreground rounded-full font-heading text-2xl tracking-wide uppercase">
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </motion.section>
+      )}
+
+      {/* ============================ GALERÍA =========================== */}
+      {galleryPhotos.length > 0 && (
+        <motion.section
+          initial="hidden" whileInView="visible" viewport={{ once: true }}
+          variants={fadeUp} transition={{ duration: 0.6 }}
+          className="py-20 bg-foreground"
+        >
+          <div className="container">
+            <SectionTitle light>Galería</SectionTitle>
+
+            {/* Navegación entre grupos si hay más de uno */}
+            {galleryGroups.length > 1 && (
+              <div className="flex items-center gap-4 mb-8">
+                <button
+                  onClick={() => setActiveGroup((g) => Math.max(0, g - 1))}
+                  disabled={activeGroup === 0}
+                  className="p-2 rounded-full border border-primary-foreground/20 text-primary-foreground disabled:opacity-30 hover:bg-primary-foreground/10 transition-colors"
+                >
+                  <ChevronLeft size={20} />
+                </button>
+                <div className="flex gap-2">
+                  {galleryGroups.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setActiveGroup(i)}
+                      className={`w-2 h-2 rounded-full transition-colors ${i === activeGroup ? 'bg-primary' : 'bg-primary-foreground/30'}`}
+                    />
+                  ))}
+                </div>
+                <button
+                  onClick={() => setActiveGroup((g) => Math.min(galleryGroups.length - 1, g + 1))}
+                  disabled={activeGroup === galleryGroups.length - 1}
+                  className="p-2 rounded-full border border-primary-foreground/20 text-primary-foreground disabled:opacity-30 hover:bg-primary-foreground/10 transition-colors"
+                >
+                  <ChevronRight size={20} />
+                </button>
+              </div>
+            )}
+
+            {/* Grid uniforme — mismo tamaño que siempre */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeGroup}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="grid grid-cols-2 sm:grid-cols-3 gap-4"
+              >
+                {galleryGroups[activeGroup]?.photos.map((photo: any, i: number) => (
+                  <button
+                    key={photo._key ?? i}
+                    onClick={() => setLightboxIndex(photo._lightboxIdx)}
+                    className="group relative overflow-hidden rounded-lg"
+                    style={{ aspectRatio: '3/4' }}
+                  >
+                    <Image
+                      src={urlFor(photo).width(500).height(667).url()}
+                      alt={`${artist.name} foto`}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/30 transition-colors" />
+                  </button>
+                ))}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </motion.section>
+      )}
+
+      {/* Lightbox */}
+      {lightboxIndex !== null && (
+        <Lightbox
+          photos={galleryPhotos}
+          startIndex={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+        />
+      )}
+
+      {/* ======================= SOBRE EL ARTISTA ======================= */}
+      {bioParagraphs.length > 0 && (
+        <motion.section
+          initial="hidden" whileInView="visible" viewport={{ once: true }}
+          variants={fadeUp} transition={{ duration: 0.6 }}
+          className="py-24 bg-background"
+        >
+          <div className="container">
+            <div className="grid lg:grid-cols-5 gap-12 items-center">
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                className="lg:col-span-2 relative"
+              >
+                <div className="aspect-[4/5] rounded-lg overflow-hidden shadow-2xl relative">
+                  {mainPhoto && (
+                    <Image
+                      src={urlFor(mainPhoto).width(600).height(750).url()}
+                      alt={artist.name}
+                      fill
+                      className="object-cover"
+                    />
+                  )}
+                </div>
+                <div className="absolute -bottom-6 -right-6 w-24 h-24 border-4 border-primary rounded-lg pointer-events-none" />
+              </motion.div>
+
+              <div className="lg:col-span-3 space-y-8">
+                <SectionTitle>Sobre el Artista</SectionTitle>
+                <div className="relative pl-16">
+                  <Quote size={56} className="absolute left-0 top-0 text-primary" fill="currentColor" />
+                  <p className="font-heading text-3xl sm:text-4xl leading-tight tracking-wide text-foreground">
+                    {bioParagraphs[0]}
+                  </p>
+                </div>
+                {bioParagraphs.length > 1 && (
+                  <div className="space-y-4 text-muted-foreground leading-relaxed">
+                    {bioParagraphs.slice(1).map((p, i) => <p key={i}>{p}</p>)}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </motion.section>
+      )}
+
+      {/* ================ CARACTERÍSTICAS Y HABILIDADES ================= */}
+      {(physicalItems.length > 0 || skills.length > 0 || artist.esProfesor) && (
+        <motion.section
+          initial="hidden" whileInView="visible" viewport={{ once: true }}
+          variants={fadeUp} transition={{ duration: 0.6 }}
+          className="py-20 bg-foreground"
+        >
+          <div className="container">
+            {/* Centrar si hay 1 o 2 columnas activas (no es profesor o faltan datos) */}
+            <div className={`grid gap-12 ${
+              activeColCount === 1
+                ? 'grid-cols-1 max-w-md mx-auto'
+                : activeColCount === 2
+                ? 'lg:grid-cols-2 max-w-3xl mx-auto'
+                : 'lg:grid-cols-3'
+            }`}>
+              {physicalItems.length > 0 && (
+                <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
+                  <h3 className="font-heading text-3xl tracking-wide text-primary-foreground mb-2">Características</h3>
+                  <div className="w-12 h-0.5 bg-primary mb-6" />
+                  <ul className="space-y-4">
+                    {physicalItems.map(({ icon: Icon, label, value }) => (
+                      <li key={label} className="flex items-center gap-4 pb-4 border-b border-primary-foreground/10">
+                        <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                          <Icon size={18} />
+                        </div>
+                        <div className="flex-1 flex items-center justify-between">
+                          <span className="text-xs uppercase tracking-widest text-primary-foreground/50">{label}</span>
+                          <span className="text-sm font-semibold text-primary-foreground">{value}</span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </motion.div>
+              )}
+
+              {skills.length > 0 && (
+                <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}>
+                  <h3 className="font-heading text-3xl tracking-wide text-primary-foreground mb-2">Habilidades</h3>
+                  <div className="w-12 h-0.5 bg-primary mb-6" />
+                  <div className="flex flex-wrap gap-3">
+                    {skills.map((s) => (
+                      <span key={s} className="px-5 py-2.5 bg-primary-foreground/5 border border-primary-foreground/10 text-primary-foreground rounded-full text-sm font-medium hover:border-primary hover:bg-primary/10 transition-colors">
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
+              {artist.esProfesor && (
+                <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={2}>
+                  <h3 className="font-heading text-3xl tracking-wide text-primary-foreground mb-2">Como Profesor</h3>
+                  <div className="w-12 h-0.5 bg-primary mb-6" />
+                  <div className="space-y-5">
+                    {tiposClase.length > 0 && (
+                      <div>
+                        <p className="text-xs uppercase tracking-widest text-primary-foreground/50 mb-2">Tipos de clase</p>
+                        <div className="flex flex-wrap gap-2">
+                          {tiposClase.map((t) => (
+                            <span key={t} className="px-4 py-1.5 bg-secondary/10 border border-secondary/30 text-secondary rounded-full text-xs font-semibold uppercase tracking-wider">{t}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {niveles.length > 0 && (
+                      <div>
+                        <p className="text-xs uppercase tracking-widest text-primary-foreground/50 mb-2">Niveles</p>
+                        <div className="flex flex-wrap gap-2">
+                          {niveles.map((n) => (
+                            <span key={n} className="px-4 py-1.5 bg-primary/10 border border-primary/40 text-primary rounded-full text-xs font-semibold uppercase tracking-wider">{n}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {horarios.length > 0 && (
+                      <div>
+                        <p className="text-xs uppercase tracking-widest text-primary-foreground/50 mb-2">Horarios</p>
+                        <div className="flex flex-wrap gap-2">
+                          {horarios.map((h) => (
+                            <span key={h} className="px-4 py-1.5 bg-primary-foreground/5 border border-primary-foreground/15 text-primary-foreground/80 rounded-full text-xs font-medium uppercase tracking-wider">{h}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          </div>
+        </motion.section>
+      )}
+
+      {/* ===================== TRAYECTORIA NUMÉRICA ===================== */}
+      {trayectoriaCards.length > 0 && (
+        <motion.section
+          initial="hidden" whileInView="visible" viewport={{ once: true }}
+          variants={fadeUp} transition={{ duration: 0.6 }}
+          className="py-20 bg-muted"
+        >
+          <div className="container">
+            <SectionTitle>Trayectoria</SectionTitle>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {trayectoriaCards.map((c, i) => (
+                <motion.div
+                  key={c.label}
+                  initial="hidden" whileInView="visible" viewport={{ once: true }}
+                  variants={fadeUp} custom={i}
+                  className="p-6 bg-card border border-border rounded-lg text-center"
+                >
+                  <p className="font-heading text-7xl text-primary leading-none">{c.value}</p>
+                  <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mt-3">{c.label}</p>
+                </motion.div>
               ))}
             </div>
           </div>
         </motion.section>
       )}
 
-      {/* 3. INFO — características / habilidades / estilos */}
-      {(physicalItems.length > 0 || skills.length > 0 || styles.length > 0) && (
-        <motion.section
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeUp}
-          transition={{ duration: 0.6 }}
-          className="bg-foreground py-24"
-        >
-          <div className="container grid md:grid-cols-3 gap-12">
-            {physicalItems.length > 0 && (
-              <div>
-                <h3 className="font-heading text-2xl tracking-wide text-primary-foreground mb-6">
-                  CARACTERÍSTICAS
-                </h3>
-                <div className="space-y-4">
-                  {physicalItems.map(({ icon: Icon, label, value }) => (
-                    <div key={label} className="flex items-center justify-between gap-3 pb-4 border-b border-primary-foreground/10">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                          <Icon size={20} className="text-primary" />
-                        </div>
-                        <span className="text-sm text-primary-foreground/60">{label}</span>
-                      </div>
-                      <span className="text-sm font-medium text-primary-foreground">{value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {skills.length > 0 && (
-              <div>
-                <h3 className="font-heading text-2xl tracking-wide text-primary-foreground mb-6">
-                  HABILIDADES
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {skills.map((skill) => (
-                    <span
-                      key={skill}
-                      className="px-6 py-3 text-sm border border-primary-foreground/10 text-primary-foreground/80 rounded-full hover:border-primary transition-colors"
-                    >
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {styles.length > 0 && (
-              <div>
-                <h3 className="font-heading text-2xl tracking-wide text-primary-foreground mb-6">
-                  ESTILOS
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {styles.map((style) => (
-                    <span
-                      key={style}
-                      className="px-6 py-3 text-sm font-medium uppercase tracking-wide bg-accent/10 border border-accent/30 text-accent rounded-full"
-                    >
-                      {style}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </motion.section>
-      )}
-
-      {/* 4. EXPERIENCIA */}
-      {hasExperienceSection && (
-        <motion.section
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeUp}
-          transition={{ duration: 0.6 }}
-          className="bg-background py-24"
-        >
-          <div className="container">
-            <div className="grid md:grid-cols-2 gap-12 items-start">
-              {artist.experience != null && (
-                <div>
-                  <p className="font-heading text-9xl text-primary leading-none">{artist.experience}</p>
-                  <p className="text-xl text-muted-foreground mt-2">
-                    {artist.experience === 1 ? 'Año de experiencia' : 'Años de experiencia'}
-                  </p>
-                </div>
-              )}
-
-              {(artist.projectTypes || artist.experienceDescription || artist.featuredProjects) && (
-                <div className="space-y-4">
-                  {artist.projectTypes && (
-                    <p className="text-muted-foreground leading-relaxed">
-                      <strong className="text-foreground">Tipo de proyectos:</strong> {artist.projectTypes}
-                    </p>
-                  )}
-                  {artist.experienceDescription && (
-                    <p className="text-muted-foreground leading-relaxed">{artist.experienceDescription}</p>
-                  )}
-                  {artist.featuredProjects && (
-                    <p className="text-muted-foreground leading-relaxed">
-                      <strong className="text-foreground">Proyectos destacados:</strong> {artist.featuredProjects}
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {trayectoria.length > 0 && (
-              <div className="mt-16">
-                <h3 className="font-heading text-3xl tracking-wide mb-8">PROYECTOS DESTACADOS</h3>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {trayectoria.map((item: any, i: number) => (
-                    <div
-                      key={i}
-                      className="p-8 bg-card border border-border rounded-lg hover:border-primary/50 transition-colors"
-                    >
-                      <p className="font-medium">{item.proyecto}</p>
-                      {item.cliente && <p className="text-sm text-muted-foreground mt-1">{item.cliente}</p>}
-                      {item.anio && <p className="text-sm text-primary font-semibold mt-3">{item.anio}</p>}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </motion.section>
-      )}
-
-      {/* 5. TRAYECTORIA — timeline */}
-      {trayectoria.length > 0 && (
-        <motion.section
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeUp}
-          transition={{ duration: 0.6 }}
-          className="bg-foreground py-24"
-        >
-          <div className="container">
-            <SectionTitle light>TRAYECTORIA</SectionTitle>
-            <div className="relative max-w-3xl mx-auto">
-              <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-0.5 bg-primary/40" />
-              <div className="space-y-12">
-                {trayectoria.map((item: any, i: number) => {
-                  const isLeft = i % 2 === 0
-                  return (
-                    <div key={i} className="relative grid grid-cols-2 gap-x-8">
-                      <div className="absolute left-1/2 -translate-x-1/2 top-1 w-4 h-4 bg-primary rounded-full z-10 ring-4 ring-foreground" />
-                      {isLeft ? (
-                        <>
-                          <div className="text-right bg-primary-foreground/5 border border-primary-foreground/10 rounded-lg p-7">
-                            {item.anio && <p className="font-heading text-4xl text-primary">{item.anio}</p>}
-                            <p className="font-heading text-2xl text-primary-foreground mt-1">{item.proyecto}</p>
-                            {item.cliente && <p className="text-sm text-primary-foreground/60 mt-1">{item.cliente}</p>}
-                          </div>
-                          <div />
-                        </>
-                      ) : (
-                        <>
-                          <div />
-                          <div className="text-left bg-primary-foreground/5 border border-primary-foreground/10 rounded-lg p-7">
-                            {item.anio && <p className="font-heading text-4xl text-primary">{item.anio}</p>}
-                            <p className="font-heading text-2xl text-primary-foreground mt-1">{item.proyecto}</p>
-                            {item.cliente && <p className="text-sm text-primary-foreground/60 mt-1">{item.cliente}</p>}
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-        </motion.section>
-      )}
-
-      {/* 6. VIDEOS */}
+      {/* ============================ VIDEOS ============================ */}
       {videos.length > 0 && (
         <motion.section
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeUp}
-          transition={{ duration: 0.6 }}
-          className="bg-foreground py-24"
+          initial="hidden" whileInView="visible" viewport={{ once: true }}
+          variants={fadeUp} transition={{ duration: 0.6 }}
+          className="py-24 bg-foreground border-t border-primary-foreground/5"
         >
           <div className="container">
-            <SectionTitle light>MATERIAL AUDIOVISUAL</SectionTitle>
-            <div className="grid sm:grid-cols-2 gap-6">
-              {videos.map((video: any) => {
+            <SectionTitle light>Videos</SectionTitle>
+            <div className="grid md:grid-cols-2 gap-6">
+              {videos.map((video: any, i: number) => {
                 const thumb = getThumbnail(video.url)
                 return (
-                  <a
-                    key={video._key}
+                  <motion.a
+                    key={video._key ?? i}
                     href={video.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group relative block aspect-video rounded-lg overflow-hidden bg-muted"
+                    initial="hidden" whileInView="visible" viewport={{ once: true }}
+                    variants={fadeUp} custom={i}
+                    className="group relative aspect-video rounded-lg overflow-hidden cursor-pointer block"
                   >
                     {thumb ? (
-                      <Image
-                        src={thumb}
-                        alt={video.title ?? 'Video'}
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
+                      <Image src={thumb} alt={video.title ?? 'Video'} fill className="object-cover transition-transform duration-500 group-hover:scale-105" />
                     ) : (
                       <div className="w-full h-full bg-zinc-800" />
                     )}
-                    <div className="absolute inset-0 bg-foreground/30 group-hover:bg-foreground/50 transition-colors flex items-center justify-center">
-                      <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center shadow-lg">
+                    <div className="absolute inset-0 bg-foreground/50 group-hover:bg-foreground/30 transition-colors" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center group-hover:scale-110 transition-transform shadow-2xl">
                         <Play size={24} className="text-primary-foreground ml-1" fill="currentColor" />
                       </div>
                     </div>
                     {video.title && (
-                      <p className="absolute bottom-3 left-4 text-sm font-medium text-primary-foreground">
-                        {video.title}
-                      </p>
+                      <div className="absolute bottom-4 left-4 right-4">
+                        <p className="font-heading text-xl tracking-wide text-primary-foreground">{video.title}</p>
+                      </div>
+                    )}
+                  </motion.a>
+                )
+              })}
+            </div>
+          </div>
+        </motion.section>
+      )}
+
+      {/* =================== PRUEBAS DE TRABAJO ========================= */}
+      {pruebasAprobadas.length > 0 && (
+        <motion.section
+          initial="hidden" whileInView="visible" viewport={{ once: true }}
+          variants={fadeUp} transition={{ duration: 0.6 }}
+          className="py-24 bg-background"
+        >
+          <div className="container">
+            <SectionTitle>Pruebas de Trabajo</SectionTitle>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {pruebasAprobadas.map((prueba: any, i: number) => {
+                const isVideo = prueba.fileType?.startsWith('video')
+                return (
+                  <a
+                    key={prueba._key ?? i}
+                    href={prueba.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group relative block rounded-lg overflow-hidden bg-muted border border-border hover:border-primary transition-colors"
+                  >
+                    {isVideo ? (
+                      <div className="aspect-video bg-zinc-100 flex items-center justify-center">
+                        <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center shadow">
+                          <Play size={22} className="text-primary-foreground ml-1" fill="currentColor" />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="aspect-video relative">
+                        <Image src={prueba.url} alt={prueba.title ?? 'Prueba de trabajo'} fill className="object-cover transition-transform duration-500 group-hover:scale-105" />
+                      </div>
+                    )}
+                    {prueba.title && (
+                      <div className="p-3">
+                        <p className="text-sm font-medium text-foreground truncate">{prueba.title}</p>
+                      </div>
                     )}
                   </a>
                 )
@@ -453,74 +805,25 @@ export default function ArtistPageClient({ artist }: { artist: any }) {
         </motion.section>
       )}
 
-      {/* 7. BIOGRAFÍA */}
-      {artist.description && (
-        <motion.section
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeUp}
-          transition={{ duration: 0.6 }}
-          className="bg-background py-24"
-        >
-          <div className="container grid md:grid-cols-5 gap-12 items-start">
-            <div className="md:col-span-2 relative">
-              <div className="relative aspect-[4/5] rounded-lg overflow-hidden bg-muted">
-                {mainPhoto ? (
-                  <Image
-                    src={urlFor(mainPhoto).width(600).height(750).url()}
-                    alt={artist.name}
-                    fill
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
-                    Sin imagen
-                  </div>
-                )}
-              </div>
-              <div className="absolute -bottom-4 -right-4 w-24 h-24 border-b-4 border-r-4 border-primary rounded-br-lg pointer-events-none" />
-            </div>
-
-            <div className="md:col-span-3">
-              <SectionTitle>BIOGRAFÍA</SectionTitle>
-              <Quote size={56} className="text-primary mb-4" />
-              {bioQuote && (
-                <p className="font-heading text-3xl sm:text-4xl tracking-wide mb-6 leading-tight">
-                  {bioQuote}
-                </p>
-              )}
-              {bioRest.length > 0 && (
-                <div className="space-y-4 text-muted-foreground leading-relaxed">
-                  {bioRest.map((para, i) => <p key={i}>{para}</p>)}
-                </div>
-              )}
-            </div>
-          </div>
-        </motion.section>
-      )}
-
-      {/* 8. CTA FINAL */}
+      {/* =========================== CTA FINAL ========================== */}
       <motion.section
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-        variants={fadeUp}
-        transition={{ duration: 0.6 }}
-        className="bg-foreground py-32"
+        initial="hidden" whileInView="visible" viewport={{ once: true }}
+        variants={fadeUp} transition={{ duration: 0.6 }}
+        className="py-20 bg-foreground border-t border-primary-foreground/5"
       >
         <div className="container text-center space-y-6">
-          <h2 className="font-heading text-4xl sm:text-6xl tracking-wide text-primary-foreground">
-            ¿Interesado en trabajar con <span className="text-primary">{artist.name}</span>?
+          <h2 className="font-heading text-4xl sm:text-5xl tracking-wide text-primary-foreground">
+            ¿Interesado en trabajar con{' '}
+            <span className="text-primary">{artist.name.split(' ')[0]}</span>?
           </h2>
-          <p className="text-primary-foreground/60 max-w-lg mx-auto">
-            Contáctanos y te ayudamos a coordinar el casting, show o proyecto que tengas en mente.
+          <p className="text-primary-foreground/60 max-w-xl mx-auto">
+            Contáctanos para cotizar shows, producciones o clases personalizadas.
           </p>
           <Link
             href="/contacto"
-            className="inline-flex items-center gap-2 px-10 py-4 bg-primary text-primary-foreground font-bold text-sm uppercase tracking-wider rounded-sm hover:bg-primary/90 transition-colors"
+            className="inline-flex items-center gap-2 px-10 py-5 bg-primary text-primary-foreground font-bold text-sm uppercase tracking-wider rounded-sm hover:bg-primary/90 transition-all hover:gap-3"
           >
-            Contactar ahora
+            <MessageCircle size={18} /> Contactar Ahora
           </Link>
         </div>
       </motion.section>

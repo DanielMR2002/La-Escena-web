@@ -114,14 +114,14 @@ export default function ArtistMediaManager({ sanityId, photos, videos }: Props) 
 
       {/* ────── FOTOS ────── */}
       <section>
-        <h3 className="font-heading text-xl mb-4">Fotos</h3>
+        <h3 className="font-heading text-xl text-zinc-900 mb-4">Fotos</h3>
         <PhotoSlotManager sanityId={sanityId} photos={photos} isAdmin />
       </section>
 
       {/* ────── VIDEOS ────── */}
       <section>
         <div className="flex items-center gap-3 mb-4">
-          <h3 className="font-heading text-xl">Videos</h3>
+          <h3 className="font-heading text-xl text-zinc-900">Videos</h3>
           <CountBadge count={localVideos.length} limit={VIDEO_LIMIT} />
         </div>
 

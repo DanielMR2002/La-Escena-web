@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Camera, Check, ArrowRight, MessageCircle } from 'lucide-react'
+import GalleryCarousel from './GalleryCarousel'
 
 const packages = [
   {
@@ -74,7 +75,7 @@ const fadeUp = {
 const inputClass =
   'w-full px-4 py-2.5 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/50'
 
-export default function BookClient() {
+export default function BookClient({ gallery }: { gallery?: any[] }) {
   const formRef = useRef<HTMLElement>(null)
   const [form, setForm] = useState({ name: '', email: '', package: '', message: '' })
   const [loading, setLoading] = useState(false)
@@ -195,6 +196,18 @@ export default function BookClient() {
         </div>
       </section>
 
+      {/* GALERÍA */}
+      {gallery && gallery.length > 0 && (
+        <section className="py-20 bg-background">
+          <div className="container">
+            <h2 className="font-heading text-4xl tracking-wide text-center mb-12">
+              Galería
+            </h2>
+            <GalleryCarousel photos={gallery} />
+          </div>
+        </section>
+      )}
+
       {/* ADD-ONS */}
       <section className="py-16 bg-muted">
         <div className="container max-w-2xl text-center">
@@ -270,7 +283,7 @@ export default function BookClient() {
               disabled={loading}
               className="w-full inline-flex items-center justify-center gap-2 py-3 bg-primary text-primary-foreground font-semibold text-sm uppercase tracking-wider rounded-sm hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
-              {loading ? 'Enviando…' : 'Solicitar mi book'} <ArrowRight size={16} />
+              {loading ? 'Enviando…' : 'Solicitar tu book particular'} <ArrowRight size={16} />
             </button>
             {success && (
               <p className="text-sm font-medium text-green-600 text-center">

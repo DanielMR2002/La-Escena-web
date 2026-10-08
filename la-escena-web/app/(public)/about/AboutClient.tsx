@@ -1,23 +1,27 @@
 'use client'
 
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { User } from "lucide-react";
 
 const team = [
   {
-    name: "Sara",
-    role: "Directora General",
-    bio: "Fundadora de La Escena. Apasionada por formalizar la industria del baile en Colombia.",
+    name: "Sara Sierra",
+    role: "CEO & Coordinadora de Talento",
+    bio: "Comunicadora Social, especialista en Marketing Digital, bailarina, coreógrafa y directora artística. Lidera la coordinación de talento, estrategia de marketing, comunicaciones y producción en La Escena.",
+    photo: "/team/sara-sierra.jpg",
   },
   {
-    name: "Equipo Creativo",
-    role: "Dirección Artística",
-    bio: "Profesionales dedicados a curar el mejor talento para cada proyecto.",
+    name: "Laura Cano Calle",
+    role: "Fundadora & Directora General",
+    bio: "Bailarina, coreógrafa, directora artística, gestora cultural y emprendedora creativa con más de 20 años de trayectoria. Lidera la visión estratégica y artística de La Escena, trabajando por la profesionalización y dignificación de la danza y la creación de nuevas oportunidades para los artistas.",
+    photo: "/team/laura-cano.jpg",
   },
   {
-    name: "Producción",
-    role: "Coordinación",
-    bio: "Gestión de eventos, castings y logística para garantizar la excelencia.",
+    name: "María Alejandra Ortiz",
+    role: "Gestión Institucional",
+    bio: "Abogada especialista en Derecho Público, con experiencia en gestión cultural y articulación institucional. En La Escena gestiona artistas, produce eventos y articula proyectos que fortalecen la danza y las artes escénicas.",
+    photo: "/team/maria-ortiz.jpg",
   },
 ];
 
@@ -76,8 +80,18 @@ export default function AboutClient() {
                 custom={i}
                 className="text-center p-8 bg-card rounded-lg border border-border space-y-3"
               >
-                <div className="w-24 h-24 rounded-full bg-accent/10 flex items-center justify-center mx-auto">
-                  <User size={40} className="text-accent" />
+                <div className="w-28 h-28 rounded-full bg-accent/10 flex items-center justify-center mx-auto overflow-hidden relative">
+                  {member.photo ? (
+                    <Image
+                      src={member.photo}
+                      alt={member.name}
+                      fill
+                      className="object-cover"
+                      onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+                    />
+                  ) : (
+                    <User size={40} className="text-accent" />
+                  )}
                 </div>
                 <h3 className="font-heading text-xl tracking-wide">{member.name}</h3>
                 <p className="text-sm text-accent font-medium">{member.role}</p>

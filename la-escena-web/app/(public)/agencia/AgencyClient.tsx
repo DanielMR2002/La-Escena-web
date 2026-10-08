@@ -134,14 +134,27 @@ export default function AgencyClient({ artists, filterOptions, initialFilters }:
           <h1 className="font-heading text-5xl sm:text-7xl tracking-wide text-primary-foreground">
             Nuestro <span className="text-secondary">Talento</span>
           </h1>
-          <p className="text-primary-foreground/60 max-w-lg mx-auto">
-            Explora el catálogo y filtra por estilo, ciudad, experiencia y más. Arma tu shortlist en minutos.
+          <p className="text-primary-foreground/60 max-w-2xl mx-auto leading-relaxed">
+            Está disponible para cualquier idea que tengas y que requiera bailarines.
+            Ya sea un videoclip, un comercial, una campaña para vender un producto o servicio,
+            un show, un performance o cualquier proyecto que quieras llevar a otro nivel,
+            contamos con el talento para ayudarte a hacerlo realidad.
+          </p>
+          <p className="text-primary-foreground/40 max-w-xl mx-auto text-sm mt-2">
+            Cuéntanos tu idea y encontremos juntos el talento que necesitas.
           </p>
         </div>
       </section>
 
       <section className="py-12 bg-background">
         <div className="container space-y-8">
+
+          {/* INTRO */}
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-center mb-10">
+            En La Escena reunimos a los mejores talentos del baile, la actuación y la producción
+            artística de Colombia. Explora nuestro catálogo y encuentra el artista perfecto para
+            tu evento, campaña o producción.
+          </p>
 
           {/* SHARED BANNER */}
           <AnimatePresence>
