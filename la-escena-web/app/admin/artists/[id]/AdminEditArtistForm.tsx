@@ -31,6 +31,7 @@ type ArtistData = {
   category?:           string
   experience?:         string | number
   projectTypes?:       string
+  experienceDescription?: string
   description?:        string
   age?:                number
   height?:             number
