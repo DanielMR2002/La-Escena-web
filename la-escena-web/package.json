@@ -15,6 +15,7 @@
     "@sanity/client": "^7.13.2",
     "@sanity/image-url": "^1.2.0",
     "@sanity/vision": "^4.22.0",
+    "@vercel/blob": "^2.8.1",
     "bcrypt": "^6.0.0",
     "dotenv": "^17.4.2",
     "framer-motion": "^12.38.0",
@@ -30,7 +31,7 @@
     "styled-components": "^6.1.19"
   },
   "devDependencies": {
-"@types/bcrypt": "^6.0.0",
+    "@types/bcrypt": "^6.0.0",
     "@types/node": "^20",
     "@types/nodemailer": "^7.0.9",
     "@types/react": "^19",
