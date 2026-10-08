@@ -11,9 +11,11 @@ import { useSession, signOut } from "next-auth/react"
 const navLinks = [
   { label: "Inicio",          path: "/" },
   { label: "Agencia",         path: "/agencia" },
+  { label: "Shows",           path: "/shows" },
   { label: "Clases de Baile", path: "/clases" },
   { label: "Book de Fotos",   path: "/book" },
   { label: "Contenido",       path: "/contenido" },
+  { label: "Mentoría",        path: "/mentoria" },
   { label: "About Us",        path: "/about" },
   { label: "Contacto",        path: "/contacto" },
   { label: "Blog",            path: "/blog" },

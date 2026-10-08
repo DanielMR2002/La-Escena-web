@@ -9,6 +9,7 @@ import RevisionActions from "../revisions/RevisionActions"
 import AdminEditArtistForm from "./AdminEditArtistForm"
 import CreateSanityProfileButton from "./CreateSanityProfileButton"
 import ArtistMediaManager from "./ArtistMediaManager"
+import DeleteArtistButton from "./DeleteArtistButton"
 
 const statusClasses: Record<string, string> = {
   PENDING:  "bg-amber-100 text-amber-700",
@@ -26,7 +27,6 @@ type SanityArtist = {
   experience:          number
   projectTypes?:       string
   experienceDescription?: string
-  featuredProjects?:   string
   description:         string
   age?:                number
   height?:             number
@@ -42,6 +42,12 @@ type SanityArtist = {
   hairColor?:          string
   skills?:             string[]
   agencyProfile?:      string
+  estilosPrincipales?: string[]
+  estilosSecundarios?: string[]
+  tipoPerfil?:         string[]
+  instagram?:          string
+  tiktok?:             string
+  youtube?:            string
   trayectoria?:        Array<{ proyecto: string; cliente: string; anio: number }>
   photos:              SanityPhoto[]
   videos:              SanityVideo[]
@@ -84,10 +90,12 @@ export default async function AdminArtistDetail({
     artist = await sanityClient.fetch(
       `*[_type == "artist" && _id == $id][0]{
         name, city, category, experience, description,
-        projectTypes, experienceDescription, featuredProjects,
+        projectTypes, experienceDescription,
         age, height, hashtags, cvUrl, artistAvailability, esProfesor, tiposClase,
         complexion, eyeColor, hairType, hairLength, hairColor,
         skills, agencyProfile,
+        estilosPrincipales, estilosSecundarios, tipoPerfil,
+        instagram, tiktok, youtube,
         trayectoria[]{ proyecto, cliente, anio },
         photos[]{ _key, asset, photoCategory },
         "videos": videos[]{ _key, url, title },
@@ -115,9 +123,12 @@ export default async function AdminArtistDetail({
           <h1 className="font-heading text-4xl">{artist?.name || profile.user.email}</h1>
           <p className="text-sm text-zinc-500 mt-1">{profile.user.email}</p>
         </div>
-        <span className={`inline-flex px-3 py-1.5 rounded-full text-sm font-medium ${statusClasses[profile.status]}`}>
-          {profile.status}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className={`inline-flex px-3 py-1.5 rounded-full text-sm font-medium ${statusClasses[profile.status]}`}>
+            {profile.status}
+          </span>
+          <DeleteArtistButton artistProfileId={profile.id} artistName={artist?.name ?? profile.user.email} />
+        </div>
       </div>
 
       {/* ── Datos actuales + Revisión pendiente ── */}
@@ -125,6 +136,7 @@ export default async function AdminArtistDetail({
         {artist && profile.sanityId ? (
           <AdminEditArtistForm
             sanityId={profile.sanityId}
+            hasVideo={(artist.videos?.length ?? 0) + (artist.pendingVideos?.length ?? 0) > 0}
             initialData={{
               name:               artist.name,
               city:               artist.city,
@@ -132,7 +144,6 @@ export default async function AdminArtistDetail({
               experience:         artist.experience,
               projectTypes:       artist.projectTypes,
               experienceDescription: artist.experienceDescription,
-              featuredProjects:   artist.featuredProjects,
               description:        artist.description,
               age:                artist.age,
               height:             artist.height,
@@ -148,6 +159,12 @@ export default async function AdminArtistDetail({
               hairColor:          artist.hairColor,
               skills:             artist.skills,
               agencyProfile:      artist.agencyProfile,
+              estilosPrincipales: artist.estilosPrincipales,
+              estilosSecundarios: artist.estilosSecundarios,
+              tipoPerfil:         artist.tipoPerfil,
+              instagram:          artist.instagram,
+              tiktok:             artist.tiktok,
+              youtube:            artist.youtube,
               trayectoria:        artist.trayectoria,
             }}
           />

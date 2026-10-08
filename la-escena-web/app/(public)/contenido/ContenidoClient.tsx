@@ -1,30 +1,37 @@
 'use client'
 
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { Video, Film, Smartphone, TrendingUp, MessageCircle } from "lucide-react";
 
-const servicios = [
+export const SERVICIOS = [
   {
+    slug: "reels-tiktoks",
     icon: Smartphone,
     title: "Reels & TikToks",
     desc: "Contenido dinámico y de alto impacto para redes sociales. Creamos reels y TikToks con coreografías, conceptos creativos y talento profesional para aumentar el alcance y la conexión de tu marca con su audiencia.",
   },
   {
+    slug: "kits-de-contenido",
     icon: Film,
     title: "Kits de Contenido",
     desc: "Paquetes completos de fotografía y video para fortalecer tu presencia digital. Incluye la creación de contenido pensado para campañas, redes sociales y plataformas digitales, acompañado de una estrategia de marketing para maximizar su impacto.",
   },
   {
+    slug: "cobertura-de-eventos",
     icon: Video,
     title: "Cobertura de Eventos",
     desc: "Registro audiovisual profesional para eventos, lanzamientos, activaciones, shows y producciones. Capturamos los mejores momentos para convertirlos en contenido de alto valor.",
   },
   {
+    slug: "trends-para-campanas",
     icon: TrendingUp,
     title: "Trends para Campañas",
     desc: "Diseñamos y producimos trends para TikTok e Instagram junto a bailarines y creadores de contenido. Creamos campañas que integran la danza, el movimiento y la creatividad para potenciar el alcance y la recordación de tu marca.",
   },
-];
+] as const;
+
+const servicios = SERVICIOS;
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -61,13 +68,17 @@ export default function ContenidoClient() {
                 viewport={{ once: true }}
                 variants={fadeUp}
                 custom={i}
-                className="p-8 bg-card rounded-lg border border-border hover:border-accent/50 transition-colors group"
               >
-                <div className="w-14 h-14 flex items-center justify-center rounded-lg bg-accent/10 text-accent mb-6 group-hover:bg-accent group-hover:text-accent-foreground transition-colors">
-                  <s.icon size={28} />
-                </div>
-                <h3 className="font-heading text-2xl tracking-wide mb-3">{s.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{s.desc}</p>
+                <Link
+                  href={`/contenido/${s.slug}`}
+                  className="group block h-full p-8 bg-card rounded-lg border border-border hover:border-accent/50 transition-all hover:shadow-lg hover:shadow-accent/5 hover:-translate-y-1 cursor-pointer"
+                >
+                  <div className="w-14 h-14 flex items-center justify-center rounded-lg bg-accent/10 text-accent mb-6 group-hover:bg-accent group-hover:text-accent-foreground transition-colors">
+                    <s.icon size={28} />
+                  </div>
+                  <h3 className="font-heading text-2xl tracking-wide mb-3">{s.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{s.desc}</p>
+                </Link>
               </motion.div>
             ))}
           </div>

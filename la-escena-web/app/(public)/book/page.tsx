@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import BookClient from './BookClient'
-import GalleryCarousel from './GalleryCarousel'
 import { getGalleryPhotos } from '@/lib/sanity'
 
 export const metadata: Metadata = {
@@ -26,19 +25,7 @@ export default async function BookPage() {
         </div>
       </section>
 
-      {/* GALERÍA */}
-      {gallery.length > 0 && (
-        <section className="py-20 bg-background">
-          <div className="container">
-            <h2 className="font-heading text-4xl tracking-wide text-center mb-12">
-              Galería
-            </h2>
-            <GalleryCarousel photos={gallery} />
-          </div>
-        </section>
-      )}
-
-      <BookClient />
+      <BookClient gallery={gallery} />
     </>
   )
 }

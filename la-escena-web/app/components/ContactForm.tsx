@@ -1,9 +1,26 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { ArrowRight } from 'lucide-react'
 
+const SERVICIO_LABELS: Record<string, string> = {
+  'reels-tiktoks': 'Reels & TikToks',
+  'kits-de-contenido': 'Kits de Contenido',
+  'cobertura-de-eventos': 'Cobertura de Eventos',
+  'trends-para-campanas': 'Trends para Campañas',
+  'Mentoría personalizada': 'Mentoría personalizada',
+}
+
+// Valores que ya existen como <option> en el select: se preseleccionan directamente, sin tocar el mensaje
+const SERVICIO_SELECT_VALUES = new Set([
+  'Agencia', 'Clases de baile', 'Book', 'Contenido', 'Otro',
+  'Show personalizado', 'Mentoría personalizada',
+])
+
 export default function ContactForm() {
+  const searchParams = useSearchParams()
+
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -14,6 +31,23 @@ export default function ContactForm() {
     date: '',
     message: '',
   })
+
+  useEffect(() => {
+    const servicio = searchParams.get('servicio')
+    if (!servicio) return
+
+    if (SERVICIO_SELECT_VALUES.has(servicio)) {
+      setForm((prev) => ({ ...prev, service: servicio }))
+      return
+    }
+
+    const label = SERVICIO_LABELS[servicio] ?? servicio
+    setForm((prev) => ({
+      ...prev,
+      service: 'Contenido',
+      message: prev.message || `Me interesa el servicio: ${label}\n\n`,
+    }))
+  }, [searchParams])
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
 
@@ -99,6 +133,8 @@ export default function ContactForm() {
           <option value="Book">Book de Fotos</option>
           <option value="Contenido">Creación de Contenido</option>
           <option value="Otro">Otro</option>
+          <option value="Show personalizado">Show o performance personalizado</option>
+          <option value="Mentoría personalizada">Mentoría personalizada</option>
         </select>
       </div>
 

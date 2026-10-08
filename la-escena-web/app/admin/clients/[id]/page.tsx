@@ -8,6 +8,7 @@ import { getClientById } from "@/services/user.service"
 import { getArtists } from "@/services/artist.service"
 import ClientArtistManager from "./ClientArtistManager"
 import ShortlistActions from "./ShortlistActions"
+import DeleteClientButton from "./DeleteClientButton"
 
 export default async function ClientDetailPage({
   params,
@@ -51,15 +52,20 @@ export default async function ClientDetailPage({
       </div>
 
       <div className="mb-8">
-        <h1 className="font-heading text-4xl mb-1">
-          {client.name ?? 'Cliente'}
-        </h1>
-        <p className="text-zinc-500 text-sm">{client.email}</p>
-        <p className="text-xs text-zinc-400 mt-1">
-          Creado el {new Date(client.createdAt).toLocaleDateString("es-CO", {
-            day: "numeric", month: "long", year: "numeric"
-          })}
-        </p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="font-heading text-4xl mb-1">
+              {client.name ?? 'Cliente'}
+            </h1>
+            <p className="text-zinc-500 text-sm">{client.email}</p>
+            <p className="text-xs text-zinc-400 mt-1">
+              Creado el {new Date(client.createdAt).toLocaleDateString("es-CO", {
+                day: "numeric", month: "long", year: "numeric"
+              })}
+            </p>
+          </div>
+          <DeleteClientButton clientId={client.id} clientName={client.name ?? client.email} />
+        </div>
       </div>
 
       {/* Shortlist aprobada */}

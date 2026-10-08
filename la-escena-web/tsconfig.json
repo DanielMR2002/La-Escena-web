@@ -1,12 +1,8 @@
 {
   "compilerOptions": {
-"baseUrl": ".",
+    "ignoreDeprecations": "5.0",
     "target": "ES2017",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -24,11 +20,8 @@
       }
     ],
     "paths": {
-  "@/*": [
-    "./*"
-  ]
-}
-
+      "@/*": ["./*"]
+    }
   },
   "include": [
     "next-env.d.ts",
@@ -36,8 +29,9 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "**/*.mts",
-    ".next/dev/types/**/*.ts"
-, "scripts/createAdmin.js"  ],
+    ".next/dev/types/**/*.ts",
+    "scripts/createAdmin.js"
+  ],
   "exclude": [
     "node_modules",
     ".next"

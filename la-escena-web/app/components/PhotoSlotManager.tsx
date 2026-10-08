@@ -259,9 +259,9 @@ export default function PhotoSlotManager({ sanityId, photos, pendingPhotos = [],
         </div>
       </div>
 
-      {/* Expresiones */}
+      {/* Polaroides */}
       <div>
-        <p className="text-xs font-medium text-zinc-400 uppercase tracking-wide mb-2">Expresiones faciales</p>
+        <p className="text-xs font-medium text-zinc-400 uppercase tracking-wide mb-2">Polaroides</p>
         <div className="grid grid-cols-3 gap-3">
           {EXPRESSION_SLOTS.map((slot) => renderSlotTile(slot))}
         </div>

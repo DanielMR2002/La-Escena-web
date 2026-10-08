@@ -5,9 +5,14 @@ import Image from "next/image"
 import { requireAdmin } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { sanityClient, urlFor } from "@/lib/sanity"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/app/api/auth/[...nextauth]/route"
+import DeleteAdminButton from "./DeleteAdminButton"
 
 export default async function AdminAdminsPage() {
   await requireAdmin()
+
+  const session = await getServerSession(authOptions)
 
   const admins = await prisma.user.findMany({
     where: { role: "ADMIN" },
@@ -30,6 +35,8 @@ export default async function AdminAdminsPage() {
     }
   }
 
+  const meEmail = session?.user?.email
+
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
@@ -46,6 +53,7 @@ export default async function AdminAdminsPage() {
           const sanityId  = admin.artistProfile?.sanityId
           const photoUrl  = sanityId ? (photoMap[sanityId] ?? null) : null
           const initials  = (admin.name ?? admin.email)[0]?.toUpperCase() ?? "A"
+          const isMe      = admin.email === meEmail
 
           return (
             <div key={admin.id} className="flex items-center gap-4 px-6 py-4">
@@ -76,6 +84,11 @@ export default async function AdminAdminsPage() {
                 </Link>
               ) : (
                 <span className="shrink-0 px-2.5 py-1 text-xs bg-zinc-100 text-zinc-500 rounded-full">Sin perfil</span>
+              )}
+
+              {/* Delete button — hidden for self */}
+              {!isMe && (
+                <DeleteAdminButton adminId={admin.id} adminName={admin.name ?? admin.email} />
               )}
             </div>
           )

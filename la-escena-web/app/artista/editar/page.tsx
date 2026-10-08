@@ -28,6 +28,13 @@ export default async function EditarArtistPage() {
     orderBy: { reviewedAt: "desc" },
   })
 
+  const hasApprovedRevision = profile?.id
+    ? (await prisma.artistProfileRevision.count({
+        where: { artistId: profile.id, status: "APPROVED" },
+      })) > 0
+    : false
+  const nameIsLocked = !isAdmin && (profile?.status === "APPROVED" || hasApprovedRevision)
+
   let photos: any[] = []
   let videos: any[] = []
   let pendingPhotos: any[] = []
@@ -38,10 +45,12 @@ export default async function EditarArtistPage() {
     const sanity = await sanityFreshClient.fetch(
       `*[_type == "artist" && _id == $id][0]{
         name, city, category, agencyProfile, experience, description,
-        projectTypes, experienceDescription, featuredProjects,
+        projectTypes, experienceDescription,
         age, height, hashtags, cvUrl, artistAvailability,
         complexion, eyeColor, hairType, hairLength, hairColor, skills,
         esProfesor, tiposClase, styles,
+        estilosPrincipales, estilosSecundarios, tipoPerfil,
+        instagram, tiktok, youtube,
         trayectoria[]{ proyecto, cliente, anio },
         photos[]{ _key, asset, photoCategory },
         "videos": videos[]{ _key, url, title },
@@ -60,6 +69,7 @@ export default async function EditarArtistPage() {
   }
 
   const hasPendingMedia = pendingPhotos.length > 0 || pendingVideos.length > 0
+  const hasVideo = videos.length > 0 || pendingVideos.length > 0
 
   return (
     <div style={{ padding: "40px", maxWidth: "800px", margin: "0 auto" }}>
@@ -82,6 +92,8 @@ export default async function EditarArtistPage() {
         isAdmin={isAdmin}
         esProfesor={sanityProfile?.esProfesor ?? false}
         hasPendingMedia={hasPendingMedia}
+        hasVideo={hasVideo}
+        nameIsLocked={nameIsLocked}
         initialData={sanityProfile ?? profile?.profileData ?? {}}
         lastRejectedRevision={lastRejectedRevision}
       />

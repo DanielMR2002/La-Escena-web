@@ -3,13 +3,11 @@
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useState, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import {
   ArrowLeft, MapPin, Download, MessageCircle,
   Ruler, Dumbbell, Eye, Scissors, Palette,
-  Play, Quote, GraduationCap, Music2, Video, Camera,
-  ChevronLeft, ChevronRight, X,
+  Play, Quote, GraduationCap, Instagram, Youtube, Music2,
 } from 'lucide-react'
 import { urlFor } from '@/lib/sanity'
 
@@ -30,85 +28,6 @@ function getCategoryLabel(artist: any): string {
   const ap = artist.agencyProfile
   if (Array.isArray(ap)) return ap.join(' · ')
   return ap || artist.category || ''
-}
-
-/* ------------------------------------------------------------------ */
-/* Lightbox                                                             */
-/* ------------------------------------------------------------------ */
-function Lightbox({
-  photos,
-  startIndex,
-  onClose,
-}: {
-  photos: any[]
-  startIndex: number
-  onClose: () => void
-}) {
-  const [current, setCurrent] = useState(startIndex)
-
-  const prev = useCallback(() => setCurrent((c) => (c - 1 + photos.length) % photos.length), [photos.length])
-  const next = useCallback(() => setCurrent((c) => (c + 1) % photos.length), [photos.length])
-
-  return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
-        onClick={onClose}
-      >
-        {/* Close */}
-        <button
-          className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors z-10"
-          onClick={onClose}
-        >
-          <X size={20} />
-        </button>
-
-        {/* Prev */}
-        <button
-          className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors z-10"
-          onClick={(e) => { e.stopPropagation(); prev() }}
-        >
-          <ChevronLeft size={24} />
-        </button>
-
-        {/* Image */}
-        <div
-          className="relative w-full max-w-4xl max-h-[85vh] mx-16"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <motion.div
-            key={current}
-            initial={{ opacity: 0, scale: 0.97 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.2 }}
-            className="relative"
-            style={{ aspectRatio: '4/3' }}
-          >
-            <Image
-              src={urlFor(photos[current]).width(1200).height(900).url()}
-              alt={`Foto ${current + 1}`}
-              fill
-              className="object-contain"
-            />
-          </motion.div>
-          <p className="text-center text-white/50 text-sm mt-3">
-            {current + 1} / {photos.length}
-          </p>
-        </div>
-
-        {/* Next */}
-        <button
-          className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors z-10"
-          onClick={(e) => { e.stopPropagation(); next() }}
-        >
-          <ChevronRight size={24} />
-        </button>
-      </motion.div>
-    </AnimatePresence>
-  )
 }
 
 /* ------------------------------------------------------------------ */
@@ -145,8 +64,6 @@ const availabilityStyles: Record<string, { dot: string; text: string }> = {
 /* ------------------------------------------------------------------ */
 export default function ArtistPageClient({ artist }: { artist: any }) {
   const router = useRouter()
-  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
-  const [activeGroup, setActiveGroup] = useState(0)
 
   /* ---- data derivation ---- */
   const photos: any[]  = artist.photos ?? []
@@ -168,8 +85,8 @@ export default function ArtistPageClient({ artist }: { artist: any }) {
   const artistAvailability: string = artist.artistAvailability ?? ''
   const genero: string = artist.genero ?? ''
 
-  const mainPhoto    = photos.find((p: any) => p.photoCategory === 'headshot') ?? photos[0]
-  const galleryPhotos = photos.filter((p: any) => p.photoCategory !== 'headshot' && p !== mainPhoto)
+  const mainPhoto    = photos[0]
+  const galleryPhotos = photos.slice(1)
   const categoryLabel = getCategoryLabel(artist)
   const hasCv = Boolean(artist.cvUrl || artist.cvPdfUrl)
 
@@ -177,9 +94,9 @@ export default function ArtistPageClient({ artist }: { artist: any }) {
 
   const showSocial = artist.socialLinksPublic === true
   const socialLinks = [
-    { name: "Instagram", url: artist.instagram, Icon: Camera },
-    { name: "TikTok", url: artist.tiktok, Icon: Music2 },
-    { name: "YouTube", url: artist.youtube, Icon: Video },
+    { name: 'Instagram', url: artist.instagram, Icon: Instagram },
+    { name: 'TikTok',    url: artist.tiktok,    Icon: Music2    },
+    { name: 'YouTube',   url: artist.youtube,   Icon: Youtube   },
   ].filter(s => showSocial && Boolean(s.url))
 
   const physicalItems = [
@@ -209,25 +126,6 @@ export default function ArtistPageClient({ artist }: { artist: any }) {
   const heroStyles = hashtags.length > 0 ? hashtags
     : estilosPrincipales.length > 0 ? estilosPrincipales
     : legacyStyles
-
-  // Agrupar galería en secciones iguales al editor
-  const SECTION_CATS = [
-    ['perfil_derecho','perfil_izquierdo','cuerpo_entero'],
-    ['expresion_1','expresion_2','expresion_3'],
-    ['conceptual_1','conceptual_2','conceptual_3'],
-  ]
-  const categorized = new Set(SECTION_CATS.flat())
-  const taggedPhotos = galleryPhotos.map((p: any, i: number) => ({ ...p, _lightboxIdx: i }))
-  const galleryGroups: Array<{ photos: any[] }> = [
-    ...SECTION_CATS.map(cats => ({ photos: taggedPhotos.filter((p: any) => cats.includes(p.photoCategory)) })),
-    { photos: taggedPhotos.filter((p: any) => !p.photoCategory || !categorized.has(p.photoCategory)) },
-  ].filter(g => g.photos.length > 0)
-
-  // Contar columnas activas para Características y Habilidades
-  const hasCharacteristics = physicalItems.length > 0
-  const hasSkills = skills.length > 0
-  const hasProfesor = artist.esProfesor
-  const activeColCount = [hasCharacteristics, hasSkills, hasProfesor].filter(Boolean).length
 
   return (
     <>
@@ -425,14 +323,11 @@ export default function ArtistPageClient({ artist }: { artist: any }) {
         >
           <div className="container">
             <SectionTitle>Estilos de Baile</SectionTitle>
-            {/* Centrado cuando solo hay un bloque (sin secundarios o sin principales) */}
-            <div className={`space-y-8 ${!hasSplitStyles || (estilosPrincipales.length === 0 || estilosSecundarios.length === 0) ? 'flex flex-col items-center text-center' : ''}`}>
+            <div className="space-y-8">
               {estilosPrincipales.length > 0 && (
                 <div>
-                  {estilosSecundarios.length > 0 && (
-                    <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">Principales</p>
-                  )}
-                  <div className="flex flex-wrap justify-center gap-3">
+                  <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">Principales</p>
+                  <div className="flex flex-wrap gap-3">
                     {estilosPrincipales.map((s) => (
                       <span key={s} className="px-6 py-3 bg-primary text-primary-foreground rounded-full font-heading text-2xl tracking-wide uppercase">
                         {s}
@@ -443,10 +338,8 @@ export default function ArtistPageClient({ artist }: { artist: any }) {
               )}
               {estilosSecundarios.length > 0 && (
                 <div>
-                  {estilosPrincipales.length > 0 && (
-                    <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">Secundarios</p>
-                  )}
-                  <div className="flex flex-wrap justify-center gap-3">
+                  <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">Secundarios</p>
+                  <div className="flex flex-wrap gap-3">
                     {estilosSecundarios.map((s) => (
                       <span key={s} className="px-6 py-3 bg-accent/15 text-accent border border-accent/40 rounded-full font-heading text-2xl tracking-wide uppercase">
                         {s}
@@ -456,7 +349,7 @@ export default function ArtistPageClient({ artist }: { artist: any }) {
                 </div>
               )}
               {!hasSplitStyles && legacyStyles.length > 0 && (
-                <div className="flex flex-wrap justify-center gap-3">
+                <div className="flex flex-wrap gap-3">
                   {legacyStyles.map((s) => (
                     <span key={s} className="px-6 py-3 bg-primary text-primary-foreground rounded-full font-heading text-2xl tracking-wide uppercase">
                       {s}
@@ -478,75 +371,30 @@ export default function ArtistPageClient({ artist }: { artist: any }) {
         >
           <div className="container">
             <SectionTitle light>Galería</SectionTitle>
-
-            {/* Navegación entre grupos si hay más de uno */}
-            {galleryGroups.length > 1 && (
-              <div className="flex items-center gap-4 mb-8">
-                <button
-                  onClick={() => setActiveGroup((g) => Math.max(0, g - 1))}
-                  disabled={activeGroup === 0}
-                  className="p-2 rounded-full border border-primary-foreground/20 text-primary-foreground disabled:opacity-30 hover:bg-primary-foreground/10 transition-colors"
-                >
-                  <ChevronLeft size={20} />
-                </button>
-                <div className="flex gap-2">
-                  {galleryGroups.map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setActiveGroup(i)}
-                      className={`w-2 h-2 rounded-full transition-colors ${i === activeGroup ? 'bg-primary' : 'bg-primary-foreground/30'}`}
-                    />
-                  ))}
-                </div>
-                <button
-                  onClick={() => setActiveGroup((g) => Math.min(galleryGroups.length - 1, g + 1))}
-                  disabled={activeGroup === galleryGroups.length - 1}
-                  className="p-2 rounded-full border border-primary-foreground/20 text-primary-foreground disabled:opacity-30 hover:bg-primary-foreground/10 transition-colors"
-                >
-                  <ChevronRight size={20} />
-                </button>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-[180px] md:auto-rows-[220px]">
+              <div className="col-span-2 row-span-2 group relative overflow-hidden rounded-lg">
+                <Image
+                  src={urlFor(galleryPhotos[0]).width(800).height(800).url()}
+                  alt={artist.name}
+                  fill
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/30 transition-colors" />
               </div>
-            )}
-
-            {/* Grid uniforme — mismo tamaño que siempre */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeGroup}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-                className="grid grid-cols-2 sm:grid-cols-3 gap-4"
-              >
-                {galleryGroups[activeGroup]?.photos.map((photo: any, i: number) => (
-                  <button
-                    key={photo._key ?? i}
-                    onClick={() => setLightboxIndex(photo._lightboxIdx)}
-                    className="group relative overflow-hidden rounded-lg"
-                    style={{ aspectRatio: '3/4' }}
-                  >
-                    <Image
-                      src={urlFor(photo).width(500).height(667).url()}
-                      alt={`${artist.name} foto`}
-                      fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/30 transition-colors" />
-                  </button>
-                ))}
-              </motion.div>
-            </AnimatePresence>
+              {galleryPhotos.slice(1).map((photo: any, i: number) => (
+                <div key={photo._key ?? i} className="group relative overflow-hidden rounded-lg">
+                  <Image
+                    src={urlFor(photo).width(400).height(400).url()}
+                    alt={`${artist.name} foto ${i + 2}`}
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/30 transition-colors" />
+                </div>
+              ))}
+            </div>
           </div>
         </motion.section>
-      )}
-
-      {/* Lightbox */}
-      {lightboxIndex !== null && (
-        <Lightbox
-          photos={galleryPhotos}
-          startIndex={lightboxIndex}
-          onClose={() => setLightboxIndex(null)}
-        />
       )}
 
       {/* ======================= SOBRE EL ARTISTA ======================= */}
@@ -604,14 +452,7 @@ export default function ArtistPageClient({ artist }: { artist: any }) {
           className="py-20 bg-foreground"
         >
           <div className="container">
-            {/* Centrar si hay 1 o 2 columnas activas (no es profesor o faltan datos) */}
-            <div className={`grid gap-12 ${
-              activeColCount === 1
-                ? 'grid-cols-1 max-w-md mx-auto'
-                : activeColCount === 2
-                ? 'lg:grid-cols-2 max-w-3xl mx-auto'
-                : 'lg:grid-cols-3'
-            }`}>
+            <div className="grid lg:grid-cols-3 gap-12">
               {physicalItems.length > 0 && (
                 <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
                   <h3 className="font-heading text-3xl tracking-wide text-primary-foreground mb-2">Características</h3>
