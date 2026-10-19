@@ -18,10 +18,11 @@ export async function GET() {
 
   let photoUrl: string | null = null
   let name: string | null = user?.name ?? null
+  let artistSlug: string | null = null
 
   if (user?.artistProfile?.sanityId) {
     const sanity = await sanityClient.fetch(
-      `*[_type == "artist" && _id == $id][0]{ name, "photo": photos[0] }`,
+      `*[_type == "artist" && _id == $id][0]{ name, "photo": photos[0], "slug": slug.current }`,
       { id: user.artistProfile.sanityId }
     )
     if (sanity?.photo) {
@@ -30,11 +31,14 @@ export async function GET() {
     if (sanity?.name) {
       name = sanity.name
     }
+    if (sanity?.slug) {
+      artistSlug = sanity.slug
+    }
   }
 
   const unreadMessages = (session.user.role === "ARTIST" || session.user.role === "ADMIN")
     ? await countUnreadMessages(session.user.id)
     : 0
 
-  return NextResponse.json({ name, photoUrl, unreadMessages, email: session.user.email })
+  return NextResponse.json({ name, photoUrl, unreadMessages, email: session.user.email, artistSlug })
 }

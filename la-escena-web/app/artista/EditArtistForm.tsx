@@ -10,7 +10,6 @@ import {
   SKILL_OPTIONS,
   AGENCY_PROFILE_OPTIONS,
   TIPOS_CLASE_OPTIONS,
-  STYLE_OPTIONS,
   TIPO_PERFIL_OPTIONS,
   DANCE_STYLE_GROUPS,
 } from "@/lib/artistProfileOptions"
@@ -535,62 +534,9 @@ export default function EditArtistForm({
         </div>
       </div>
 
-      {/* Card 2 — Sobre ti */}
+      {/* Card 2 — Tipo de perfil */}
       <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-        <SectionHeader n={2} title="Sobre ti" />
-
-        <div className="space-y-4">
-          <div>
-            <label className={labelCls}>¿Quién eres como artista y persona?</label>
-            <textarea value={form.description} onChange={set("description")} rows={4} className={inputCls} />
-          </div>
-
-          <div>
-            <label className={labelCls}>Hashtags</label>
-            <input
-              value={hashtagsInput}
-              onChange={(e) => setHashtagsInput(e.target.value)}
-              placeholder="#salsa, #contemporáneo"
-              className={inputCls}
-            />
-            <p className={helperCls}>
-              Etiquetas que describen tu estilo, separadas por coma. Ej: #salsa, #contemporáneo
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Card 3 — Estilos de baile */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-        <SectionHeader n={3} title="Estilos de baile" />
-
-        <p className="text-xs text-zinc-500 mb-4">
-          Selecciona los estilos que bailas o que representan tu perfil artístico
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {STYLE_OPTIONS.map((style) => {
-            const active = selectedStyles.includes(style)
-            return (
-              <button
-                key={style}
-                type="button"
-                onClick={() => toggleStyle(style)}
-                className={`border rounded-full px-3 py-1 text-sm cursor-pointer transition-colors ${
-                  active
-                    ? "bg-primary text-white border-primary"
-                    : "bg-zinc-800 text-zinc-300 border-zinc-700 hover:border-zinc-500"
-                }`}
-              >
-                {style}
-              </button>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* Card 4 — Tipo de perfil */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-        <SectionHeader n={4} title="Tipo de perfil" />
+        <SectionHeader n={2} title="Tipo de perfil" />
 
         <div className="space-y-4">
           <div>
@@ -714,6 +660,68 @@ export default function EditArtistForm({
               )}
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Card 3 — Estilos de baile */}
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+        <SectionHeader n={3} title="Estilos de baile" />
+
+        <p className="text-xs text-zinc-500 mb-4">
+          Selecciona los estilos que bailas o que representan tu perfil artístico
+        </p>
+        <div className="space-y-4">
+          {DANCE_STYLE_GROUPS.map((group) => (
+            <div key={group.category}>
+              <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-2">
+                {group.category}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {group.styles.map((style) => {
+                  const active = selectedStyles.includes(style.value)
+                  return (
+                    <button
+                      key={style.value}
+                      type="button"
+                      onClick={() => toggleStyle(style.value)}
+                      className={`border rounded-full px-3 py-1 text-sm cursor-pointer transition-colors ${
+                        active
+                          ? "bg-primary text-white border-primary"
+                          : "bg-zinc-800 text-zinc-300 border-zinc-700 hover:border-zinc-500"
+                      }`}
+                    >
+                      {style.label}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Card 4 — Sobre ti */}
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+        <SectionHeader n={4} title="Sobre ti" />
+
+        <div className="space-y-4">
+          <div>
+            <label className={labelCls}>¿Quién eres como artista y persona?</label>
+            <textarea value={form.description} onChange={set("description")} rows={4} className={inputCls} />
+          </div>
+
+          <div>
+            <label className={labelCls}>Hashtags</label>
+            <input
+              value={hashtagsInput}
+              onChange={(e) => setHashtagsInput(e.target.value)}
+              placeholder="#salsa, #contemporáneo"
+              className={inputCls}
+            />
+            <p className={helperCls}>
+              Etiquetas que describen tu estilo, separadas por coma. Ej: #salsa, #contemporáneo
+            </p>
+          </div>
         </div>
       </div>
 

@@ -185,6 +185,7 @@ export async function getArtistBySlug(slug: string) {
       height,
       hashtags,
       description,
+      "slug": slug.current,
       "trayectoria": trayectoria{ aniosBailando, aniosExperiencia, edad, estatura },
       "photos": photos[]{ _key, asset, photoCategory },
       "videos": videos[]{ _key, url, title },

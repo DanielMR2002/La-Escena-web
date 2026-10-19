@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ArrowLeft, MapPin, Download, MessageCircle,
@@ -12,6 +12,7 @@ import {
   ChevronLeft, ChevronRight, X,
 } from 'lucide-react'
 import { urlFor } from '@/lib/sanity'
+import { useSession } from 'next-auth/react'
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                              */
@@ -147,6 +148,19 @@ export default function ArtistPageClient({ artist }: { artist: any }) {
   const router = useRouter()
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [activeGroup, setActiveGroup] = useState(0)
+  const { data: session } = useSession()
+  const [isOwner, setIsOwner] = useState(false)
+
+  useEffect(() => {
+    if (!session) return
+    fetch('/api/me').then(r => r.json()).then((me) => {
+      const artistSlugVal = typeof artist.slug === "string" ? artist.slug : artist.slug?.current
+      if (me.artistSlug && artistSlugVal === me.artistSlug) {
+        setIsOwner(true)
+      }
+    }).catch(() => {})
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session])
 
   /* ---- data derivation ---- */
   const photos: any[]  = artist.photos ?? []
@@ -239,12 +253,22 @@ export default function ArtistPageClient({ artist }: { artist: any }) {
         </div>
 
         <div className="container relative z-10 py-16 lg:py-24">
-          <button
-            onClick={() => router.back()}
-            className="inline-flex items-center gap-1.5 text-sm text-primary-foreground/60 hover:text-primary-foreground transition-colors mb-10"
-          >
-            <ArrowLeft size={16} /> Volver
-          </button>
+          <div className="flex items-center justify-between mb-10">
+            <button
+              onClick={() => router.back()}
+              className="inline-flex items-center gap-1.5 text-sm text-primary-foreground/60 hover:text-primary-foreground transition-colors"
+            >
+              <ArrowLeft size={16} /> Volver
+            </button>
+            {isOwner && (
+              <Link
+                href="/artista/editar"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
+              >
+                Editar perfil
+              </Link>
+            )}
+          </div>
 
           <div className="grid lg:grid-cols-5 gap-10 lg:gap-16 items-center">
             {/* Foto principal */}
