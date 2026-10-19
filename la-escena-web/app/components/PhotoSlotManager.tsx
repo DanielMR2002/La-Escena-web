@@ -3,6 +3,7 @@
 import { useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
+import { upload } from "@vercel/blob/client"
 import { urlFor } from "@/lib/sanity"
 import { REQUIRED_SLOTS, EXPRESSION_SLOTS, CONCEPTUAL_SLOTS, PHOTO_SLOT_VALUES, type PhotoSlot } from "@/lib/photoSlots"
 
@@ -113,10 +114,9 @@ export default function PhotoSlotManager({ sanityId, photos, pendingPhotos = [],
   const [dragOverSlot, setDragOverSlot] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const uploadUrl = isAdmin ? "/api/admin/artists/photos/upload" : "/api/artist/photos/upload"
+  const adminUploadUrl = "/api/admin/artists/photos/upload"
   const deleteUrl = isAdmin ? "/api/admin/artists/photos/delete" : "/api/artist/photos/delete"
 
-  // Para cada slot: la pendiente manda si existe; si no, la aprobada.
   function tileFor(slot: string): { photo?: SlotPhoto; pending: boolean } {
     const pendingPhoto = localPendingPhotos.find((p) => p.photoCategory === slot)
     if (pendingPhoto) return { photo: pendingPhoto, pending: true }
@@ -135,24 +135,75 @@ export default function PhotoSlotManager({ sanityId, photos, pendingPhotos = [],
     setUploadingSlot(slot)
     setError(null)
 
-    const body = new FormData()
-    body.append("sanityId", sanityId)
-    body.append("file", file)
-    if (photoCategory) body.append("photoCategory", photoCategory)
+    try {
+      let photo: SlotPhoto
 
-    const res = await fetch(uploadUrl, { method: "POST", body })
-    setUploadingSlot(null)
+      if (isAdmin) {
+        // Admin: FormData path
+        const body = new FormData()
+        body.append("sanityId", sanityId)
+        body.append("file", file)
+        if (photoCategory) body.append("photoCategory", photoCategory)
 
-    if (!res.ok) {
-      const d = await res.json().catch(() => ({}))
-      setError(d.error ?? "Error al subir la foto")
-      return
+        const res = await fetch(adminUploadUrl, { method: "POST", body })
+        setUploadingSlot(null)
+
+        if (!res.ok) {
+          const d = await res.json().catch(() => ({}))
+          setError(d.error ?? "Error al subir la foto")
+          return
+        }
+
+        const data = await res.json()
+        photo = data.photo
+      } else {
+        // Artist: upload directly to Vercel Blob (bypasses 4.5MB serverless limit)
+        const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_")
+        const blob = await upload(
+          `artist-photos/${Date.now()}-${safeName}`,
+          file,
+          {
+            access: "public",
+            handleUploadUrl: "/api/artist/photos/upload-url",
+          }
+        )
+
+        // Tell the server to transfer from Blob → Sanity
+        const res = await fetch("/api/artist/photos/upload", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sanityId,
+            blobUrl: blob.url,
+            fileName: file.name,
+            contentType: file.type,
+            photoCategory: photoCategory ?? undefined,
+          }),
+        })
+
+        setUploadingSlot(null)
+
+        if (!res.ok) {
+          const d = await res.json().catch(() => ({}))
+          setError(d.error ?? "Error al subir la foto")
+          return
+        }
+
+        const data = await res.json()
+        photo = data.photo
+      }
+
+      const setter = isAdmin ? setLocalPhotos : setLocalPendingPhotos
+      setter((prev) => [
+        ...prev.filter((p) => !photoCategory || p.photoCategory !== photoCategory),
+        photo,
+      ])
+      router.refresh()
+    } catch (err) {
+      setUploadingSlot(null)
+      console.error("Upload error:", err)
+      setError("Error al subir la foto. Intenta de nuevo.")
     }
-
-    const { photo } = await res.json()
-    const setter = isAdmin ? setLocalPhotos : setLocalPendingPhotos
-    setter((prev) => [...prev.filter((p) => !photoCategory || p.photoCategory !== photoCategory), photo])
-    router.refresh()
   }
 
   function openPicker(slot: string) {
@@ -208,8 +259,6 @@ export default function PhotoSlotManager({ sanityId, photos, pendingPhotos = [],
   async function handleDelete(slot: string) {
     const { photo, pending } = tileFor(slot)
     if (!photo) return
-    // El artista solo puede eliminar lo que él mismo propuso (pendiente);
-    // lo ya aprobado no se borra directo, se reemplaza (queda a revisión).
     if (!isAdmin && !pending) return
     await handleDeleteByKey(photo._key, isAdmin ? false : pending)
   }
@@ -275,7 +324,7 @@ export default function PhotoSlotManager({ sanityId, photos, pendingPhotos = [],
         </div>
       </div>
 
-      {/* Fotos sin categoría (subidas antes de los slots, o subidas sueltas) */}
+      {/* Fotos sin categoría */}
       <div>
         <p className="text-xs font-medium text-zinc-400 uppercase tracking-wide mb-2">Otras fotos</p>
         <div className="grid grid-cols-3 gap-3">

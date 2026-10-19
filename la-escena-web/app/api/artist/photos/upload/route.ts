@@ -9,14 +9,12 @@ export async function POST(req: Request) {
   try {
     const session = await requireArtist()
 
-    const formData          = await req.formData()
-    const sanityId          = formData.get("sanityId") as string
-    const file              = formData.get("file") as File | null
-    const photoCategoryRaw  = formData.get("photoCategory") as string | null
-    const photoCategory     = photoCategoryRaw ? photoCategoryRaw : null
+    const body = await req.json()
+    const { sanityId, blobUrl, fileName, contentType, photoCategory: photoCategoryRaw } = body
+    const photoCategory = photoCategoryRaw || null
 
-    if (!sanityId || !file) {
-      return NextResponse.json({ error: "Missing sanityId or file" }, { status: 400 })
+    if (!sanityId || !blobUrl) {
+      return NextResponse.json({ error: "Missing sanityId or blobUrl" }, { status: 400 })
     }
 
     if (photoCategory && !PHOTO_SLOT_VALUES.includes(photoCategory)) {
@@ -40,11 +38,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Ya se alcanzó el máximo de 10 fotos" }, { status: 400 })
     }
 
-    const buffer = Buffer.from(await file.arrayBuffer())
+    // Download from Vercel Blob and upload to Sanity
+    const blobRes = await fetch(blobUrl)
+    if (!blobRes.ok) {
+      return NextResponse.json({ error: "No se pudo obtener la imagen desde Blob" }, { status: 500 })
+    }
+    const buffer = Buffer.from(await blobRes.arrayBuffer())
 
     const asset = await sanityWriteClient.assets.upload("image", buffer, {
-      filename:    file.name,
-      contentType: file.type,
+      filename: fileName ?? "photo.jpg",
+      contentType: contentType ?? "image/jpeg",
     })
 
     const key = Math.random().toString(36).slice(2, 10)
@@ -58,7 +61,6 @@ export async function POST(req: Request) {
     let patch = sanityWriteClient.patch(sanityId).setIfMissing({ pendingPhotos: [] })
 
     if (existing) {
-      // Reemplaza la foto pendiente existente de ese slot, en su misma posición
       patch = patch.insert("replace", `pendingPhotos[_key=="${existing._key}"]`, [newPhoto])
     } else if (photoCategory === "headshot" && existingPhotos.length > 0) {
       patch = patch.insert("before", "pendingPhotos[0]", [newPhoto])
