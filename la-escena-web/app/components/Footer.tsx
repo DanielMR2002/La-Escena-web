@@ -39,9 +39,9 @@ export default function Footer() {
               <li><Link href="/clases" className="hover:text-secondary transition-colors">Clases de Baile</Link></li>
               <li><Link href="/book" className="hover:text-secondary transition-colors">Book de Fotos</Link></li>
               <li><Link href="/contenido" className="hover:text-secondary transition-colors">Creación de Contenido</Link></li>
-              <li><Link href="/mentorias" className="hover:text-secondary transition-colors">Mentorías para Artistas</Link></li>
-              <li><Link href="/show" className="hover:text-secondary transition-colors">Show</Link></li>
-              <li><Link href="/direccion-creativa" className="hover:text-secondary transition-colors">Dirección Creativa y Artística</Link></li>
+              <li><Link href="/mentoria" className="hover:text-secondary transition-colors">Mentorías para Artistas</Link></li>
+              <li><Link href="/shows" className="hover:text-secondary transition-colors">Show</Link></li>
+              <li><span className="text-primary-foreground/60">Dirección Creativa y Artística</span></li>
             </ul>
           </div>
 

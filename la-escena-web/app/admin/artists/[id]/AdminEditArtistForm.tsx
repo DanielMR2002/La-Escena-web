@@ -1,5 +1,6 @@
 "use client"
 
+import { upload } from "@vercel/blob/client"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { ARTIST_CATEGORIES, formatCategoryLabel } from "@/lib/artistCategories"
@@ -214,15 +215,20 @@ export default function AdminEditArtistForm({ sanityId, initialData, hasVideo }:
     if (!file) return
     setPruebaUploadError(null)
     setPruebaUploading(true)
-    const fd = new FormData()
-    fd.append("file", file)
-    const res = await fetch("/api/artist/prueba-trabajo/upload", { method: "POST", body: fd })
-    if (res.ok) {
-      const { url, name, type } = await res.json()
-      setPruebasSubidas((prev) => [...prev, { url, title: name, fileType: type }])
-    } else {
-      const { error } = await res.json().catch(() => ({ error: "Error al subir el archivo." }))
-      setPruebaUploadError(error ?? "Error al subir el archivo.")
+    try {
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_")
+      const blob = await upload(
+        `pruebas-trabajo/${Date.now()}-${safeName}`,
+        file,
+        {
+          access: "public",
+          handleUploadUrl: "/api/artist/prueba-trabajo/upload-url",
+        }
+      )
+      setPruebasSubidas((prev) => [...prev, { url: blob.url, title: file.name, fileType: file.type }])
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error al subir el archivo."
+      setPruebaUploadError(msg)
     }
     setPruebaUploading(false)
     e.target.value = ""
@@ -375,7 +381,7 @@ export default function AdminEditArtistForm({ sanityId, initialData, hasVideo }:
     router.refresh()
   }
 
-  const inputCls = "w-full px-3 py-2 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+  const inputCls = "w-full px-3 py-2 border border-zinc-200 rounded-lg text-sm !text-zinc-900 bg-white placeholder:text-zinc-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
 
   return (
     <div className="bg-white rounded-xl border border-zinc-200 p-6">

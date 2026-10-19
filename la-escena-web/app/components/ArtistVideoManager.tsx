@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
+import { upload } from "@vercel/blob/client"
 
 type SanityVideo = { _key: string; url: string; title?: string }
 
@@ -45,17 +46,25 @@ export default function ArtistVideoManager({ sanityId, videos, pendingVideos }: 
     setFileUploadError(null)
     setFileUploadName(null)
     setFileUploading(true)
-    const fd = new FormData()
-    fd.append("file", file)
-    const res = await fetch("/api/artist/video/upload", { method: "POST", body: fd })
-    if (res.ok) {
-      const { url } = await res.json()
-      // Save to Sanity via the same add endpoint
+
+    try {
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_")
+      const blob = await upload(
+        `artist-videos/${Date.now()}-${safeName}`,
+        file,
+        {
+          access: "public",
+          handleUploadUrl: "/api/artist/video/upload-url",
+        }
+      )
+
+      // Save URL to Sanity
       const addRes = await fetch("/api/artist/videos/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sanityId, url, title: file.name }),
+        body: JSON.stringify({ sanityId, url: blob.url, title: file.name }),
       })
+
       if (addRes.ok) {
         const { video } = await addRes.json()
         setLocalPendingVideos((prev) => [...prev, video])
@@ -65,10 +74,11 @@ export default function ArtistVideoManager({ sanityId, videos, pendingVideos }: 
         const d = await addRes.json().catch(() => ({ error: "Error al guardar el video." }))
         setFileUploadError(d.error ?? "Error al guardar el video.")
       }
-    } else {
-      const d = await res.json().catch(() => ({ error: "Error al subir el video." }))
-      setFileUploadError(d.error ?? "Error al subir el video.")
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : (typeof err === "string" ? err : JSON.stringify(err))
+      setFileUploadError(msg)
     }
+
     setFileUploading(false)
     e.target.value = ""
   }
@@ -210,7 +220,7 @@ export default function ArtistVideoManager({ sanityId, videos, pendingVideos }: 
 
           <div className="pt-3 border-t border-zinc-100">
             <p className="text-xs font-medium text-zinc-400 uppercase tracking-wide mb-2">O sube un archivo de video</p>
-            <p className="text-xs text-zinc-400 mb-2">mp4, mov, avi, webm · máx. 200 MB</p>
+            <p className="text-xs text-zinc-400 mb-2">mp4, mov, avi, webm · máx. 500 MB</p>
             <input
               type="file"
               accept="video/mp4,video/quicktime,video/x-msvideo,video/webm"
