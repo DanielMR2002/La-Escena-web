@@ -1,6 +1,7 @@
 import { ArtistFiltersV2 } from '@/types/artistFilters'
 
-function normalizeTag(value: string) {
+function normalizeTag(value: unknown) {
+  if (typeof value !== 'string') return ''
   return value.trim().toLowerCase().replace(/^#/, '')
 }
 

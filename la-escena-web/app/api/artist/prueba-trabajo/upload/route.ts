@@ -3,6 +3,17 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 import { put } from "@vercel/blob"
 
+
+// Raise Next.js body size limit (default 4 MB) for large video uploads
+export const maxDuration = 60
+export const dynamic = "force-dynamic"
+
+export const fetchCache = "force-no-store"
+
+// bodySizeLimit for App Router — accepts bytes or string like "100mb"
+// Reference: https://nextjs.org/docs/app/api-reference/file-conventions/route-segment-config
+export const bodySizeLimit = "150mb"
+
 const MAX_SIZE = 100 * 1024 * 1024 // 100 MB
 
 export async function POST(req: NextRequest) {

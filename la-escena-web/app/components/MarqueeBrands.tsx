@@ -101,12 +101,14 @@ export default function MarqueeBrands({ brands }: { brands: Brand[] }) {
               key={`${brand.name}-${i}`}
               className="flex items-center shrink-0"
             >
-              <span className="mx-8 sm:mx-12 flex items-center justify-center h-12 sm:h-14">
+              <span className="mx-10 sm:mx-14 flex items-center justify-center h-16 sm:h-20 w-[140px] sm:w-[180px]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={brand.src}
                   alt={brand.name}
-                  className="max-h-full max-w-[120px] sm:max-w-[140px] w-auto object-contain opacity-90 hover:opacity-100 transition-opacity duration-300"
+                  className="max-h-full max-w-full w-auto object-contain opacity-80 hover:opacity-100 transition-opacity duration-300"
+                  draggable={false}
+                  style={{ mixBlendMode: "multiply" }}
                   loading="lazy"
                 />
               </span>

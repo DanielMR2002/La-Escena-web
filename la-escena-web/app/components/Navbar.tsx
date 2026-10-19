@@ -23,18 +23,19 @@ const navLinks = [
 
 type MenuItem = { label: string; href: string; badge?: number }
 
-function getMenuItems(role: string, unreadMessages: number): MenuItem[] {
+function getMenuItems(role: string, unreadMessages: number, artistSlug?: string | null): MenuItem[] {
+  const profileHref = artistSlug ? `/artistas/${artistSlug}` : "/artista"
   if (role === "ADMIN") {
     return [
       { label: "Panel Admin", href: "/admin" },
-      { label: "Mi Perfil",   href: "/artista" },
+      { label: "Mi Perfil",   href: profileHref },
       { label: "Buzón",       href: "/artista/mensajes", badge: unreadMessages },
       { label: "Noticias",    href: "/artista/noticias" },
     ]
   }
   if (role === "ARTIST") {
     return [
-      { label: "Mi Perfil", href: "/artista" },
+      { label: "Mi Perfil", href: profileHref },
       { label: "Buzón",     href: "/artista/mensajes", badge: unreadMessages },
       { label: "Noticias",  href: "/artista/noticias" },
     ]
@@ -51,7 +52,7 @@ function getLabel(role?: string) {
   return "Mi Cuenta"
 }
 
-type MeData = { name: string | null; photoUrl: string | null; unreadMessages?: number }
+type MeData = { name: string | null; photoUrl: string | null; unreadMessages?: number; artistSlug?: string | null }
 
 export default function Navbar() {
   const [isOpen,   setIsOpen]   = useState(false)
@@ -62,7 +63,7 @@ export default function Navbar() {
   const { data: session, status } = useSession()
 
   const role  = session?.user.role
-  const items = role ? getMenuItems(role, me?.unreadMessages ?? 0) : []
+  const items = role ? getMenuItems(role, me?.unreadMessages ?? 0, me?.artistSlug) : []
 
   useEffect(() => {
     if (status !== "authenticated") { setMe(null); return }

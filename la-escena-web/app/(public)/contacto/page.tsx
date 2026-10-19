@@ -51,7 +51,7 @@ export default function ContactoPage() {
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Email</p>
-                      <p className="text-sm font-medium">info@laescena.co</p>
+                      <p className="text-sm font-medium">laescenas@gmail.com</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -60,7 +60,7 @@ export default function ContactoPage() {
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Teléfono</p>
-                      <p className="text-sm font-medium">+57 310 682 3504</p>
+                      <p className="text-sm font-medium">+57 314 776 7399</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
