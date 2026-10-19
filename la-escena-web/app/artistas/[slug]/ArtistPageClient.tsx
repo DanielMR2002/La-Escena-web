@@ -148,6 +148,7 @@ export default function ArtistPageClient({ artist }: { artist: any }) {
   const router = useRouter()
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [activeGroup, setActiveGroup] = useState(0)
+  const [videoModal, setVideoModal] = useState<{ url: string; title?: string } | null>(null)
   const { data: session } = useSession()
   const [isOwner, setIsOwner] = useState(false)
 
@@ -751,6 +752,38 @@ export default function ArtistPageClient({ artist }: { artist: any }) {
             <div className="grid md:grid-cols-2 gap-6">
               {videos.map((video: any, i: number) => {
                 const thumb = getThumbnail(video.url)
+                const isBlob = !youtubeId(video.url)
+                if (isBlob) {
+                  return (
+                    <motion.button
+                      key={video._key ?? i}
+                      type="button"
+                      onClick={() => setVideoModal({ url: video.url, title: video.title })}
+                      initial="hidden" whileInView="visible" viewport={{ once: true }}
+                      variants={fadeUp} custom={i}
+                      className="group relative aspect-video rounded-lg overflow-hidden cursor-pointer block w-full"
+                    >
+                      <video
+                        src={video.url}
+                        preload="metadata"
+                        muted
+                        playsInline
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-foreground/50 group-hover:bg-foreground/30 transition-colors" />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center group-hover:scale-110 transition-transform shadow-2xl">
+                          <Play size={24} className="text-primary-foreground ml-1" fill="currentColor" />
+                        </div>
+                      </div>
+                      {video.title && (
+                        <div className="absolute bottom-4 left-4 right-4">
+                          <p className="font-heading text-xl tracking-wide text-primary-foreground">{video.title}</p>
+                        </div>
+                      )}
+                    </motion.button>
+                  )
+                }
                 return (
                   <motion.a
                     key={video._key ?? i}
@@ -797,7 +830,34 @@ export default function ArtistPageClient({ artist }: { artist: any }) {
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {pruebasAprobadas.map((prueba: any, i: number) => {
                 const isVideo = prueba.fileType?.startsWith('video')
-                return (
+                return isVideo ? (
+                  <button
+                    key={prueba._key ?? i}
+                    type="button"
+                    onClick={() => setVideoModal({ url: prueba.url, title: prueba.title })}
+                    className="group relative block w-full rounded-lg overflow-hidden bg-muted border border-border hover:border-primary transition-colors text-left"
+                  >
+                    <div className="aspect-video relative bg-zinc-900 overflow-hidden">
+                      <video
+                        src={prueba.url}
+                        preload="metadata"
+                        muted
+                        playsInline
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                        <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                          <Play size={22} className="text-primary-foreground ml-1" fill="currentColor" />
+                        </div>
+                      </div>
+                    </div>
+                    {prueba.title && (
+                      <div className="p-3">
+                        <p className="text-sm font-medium text-foreground truncate">{prueba.title}</p>
+                      </div>
+                    )}
+                  </button>
+                ) : (
                   <a
                     key={prueba._key ?? i}
                     href={prueba.url}
@@ -805,17 +865,9 @@ export default function ArtistPageClient({ artist }: { artist: any }) {
                     rel="noopener noreferrer"
                     className="group relative block rounded-lg overflow-hidden bg-muted border border-border hover:border-primary transition-colors"
                   >
-                    {isVideo ? (
-                      <div className="aspect-video bg-zinc-100 flex items-center justify-center">
-                        <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center shadow">
-                          <Play size={22} className="text-primary-foreground ml-1" fill="currentColor" />
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="aspect-video relative">
-                        <Image src={prueba.url} alt={prueba.title ?? 'Prueba de trabajo'} fill className="object-cover transition-transform duration-500 group-hover:scale-105" />
-                      </div>
-                    )}
+                    <div className="aspect-video relative">
+                      <Image src={prueba.url} alt={prueba.title ?? 'Prueba de trabajo'} fill className="object-cover transition-transform duration-500 group-hover:scale-105" />
+                    </div>
                     {prueba.title && (
                       <div className="p-3">
                         <p className="text-sm font-medium text-foreground truncate">{prueba.title}</p>
@@ -828,6 +880,45 @@ export default function ArtistPageClient({ artist }: { artist: any }) {
           </div>
         </motion.section>
       )}
+
+      {/* =================== VIDEO MODAL ========================= */}
+      <AnimatePresence>
+        {videoModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+            onClick={() => setVideoModal(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="relative w-full max-w-4xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setVideoModal(null)}
+                className="absolute -top-10 right-0 text-white/70 hover:text-white transition-colors flex items-center gap-1 text-sm"
+              >
+                <X size={18} /> Cerrar
+              </button>
+              <video
+                src={videoModal.url}
+                controls
+                autoPlay
+                className="w-full rounded-lg shadow-2xl"
+                style={{ maxHeight: '80vh' }}
+              />
+              {videoModal.title && (
+                <p className="mt-3 text-white/80 text-sm text-center">{videoModal.title}</p>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* =========================== CTA FINAL ========================== */}
       <motion.section

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { upload } from "@vercel/blob/client"
 import {
   COMPLEXION_OPTIONS,
   EYE_COLOR_OPTIONS,
@@ -190,15 +191,20 @@ export default function EditArtistForm({
     if (!file) return
     setPruebaUploadError(null)
     setPruebaUploading(true)
-    const fd = new FormData()
-    fd.append("file", file)
-    const res = await fetch("/api/artist/prueba-trabajo/upload", { method: "POST", body: fd })
-    if (res.ok) {
-      const { url, name, type } = await res.json()
-      setPruebasSubidas((prev) => [...prev, { url, title: name, fileType: type }])
-    } else {
-      const { error } = await res.json().catch(() => ({ error: "Error al subir el archivo." }))
-      setPruebaUploadError(error ?? "Error al subir el archivo.")
+    try {
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_")
+      const blob = await upload(
+        `pruebas-trabajo/${Date.now()}-${safeName}`,
+        file,
+        {
+          access: "public",
+          handleUploadUrl: "/api/artist/prueba-trabajo/upload-url",
+        }
+      )
+      setPruebasSubidas((prev) => [...prev, { url: blob.url, title: file.name, fileType: file.type }])
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : (typeof err === "string" ? err : JSON.stringify(err))
+      setPruebaUploadError(msg)
     }
     setPruebaUploading(false)
     e.target.value = ""
