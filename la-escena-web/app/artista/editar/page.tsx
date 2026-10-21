@@ -33,7 +33,11 @@ export default async function EditarArtistPage() {
         where: { artistId: profile.id, status: "APPROVED" },
       })) > 0
     : false
-  const nameIsLocked = !isAdmin && (profile?.status === "APPROVED" || hasApprovedRevision)
+  // El nombre solo se bloquea si YA fue aprobada al menos una revisión.
+  // El status del profile (APPROVED/PENDING) no es suficiente porque los
+  // perfiles de artistas nuevos pueden nacer con status APPROVED sin haber
+  // pasado por ninguna revisión real.
+  const nameIsLocked = !isAdmin && hasApprovedRevision
 
   let photos: any[] = []
   let videos: any[] = []
@@ -50,8 +54,9 @@ export default async function EditarArtistPage() {
         complexion, eyeColor, hairType, hairLength, hairColor, skills,
         esProfesor, tiposClase, styles,
         estilosPrincipales, estilosSecundarios, tipoPerfil,
-        instagram, tiktok, youtube,
-        trayectoria[]{ proyecto, cliente, anio },
+        instagram, tiktok, youtube, socialLinksPublic,
+        genero, generoOtro, niveles, horarios,
+        trayectoria{ aniosBailando, aniosExperiencia, edad, estatura },
         photos[]{ _key, asset, photoCategory },
         "videos": videos[]{ _key, url, title },
         pendingPhotos[]{ _key, asset, photoCategory },

@@ -76,7 +76,7 @@ export default function ContactoPage() {
               </div>
 
               <a
-                href="https://wa.me/573106823504"
+                href="https://wa.me/573147767399"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 p-6 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"

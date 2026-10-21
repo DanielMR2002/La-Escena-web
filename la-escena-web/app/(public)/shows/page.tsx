@@ -47,21 +47,43 @@ const videos: ShowVideo[] = [
   },
 ]
 
-function toYoutubeEmbed(url: string): string {
+function toYoutubeId(url: string): string | null {
   const shortMatch = url.match(/youtu\.be\/([^?&]+)/)
-  if (shortMatch) {
-    return `https://www.youtube.com/embed/${shortMatch[1]}`
-  }
+  if (shortMatch) return shortMatch[1]
   const idMatch = url.match(/[?&]v=([^&]+)/)
-  if (idMatch) {
-    const tMatch = url.match(/[?&]t=(\d+)s?/)
-    const start = tMatch ? `?start=${tMatch[1]}` : ''
-    return `https://www.youtube.com/embed/${idMatch[1]}${start}`
-  }
-  return url
+  if (idMatch) return idMatch[1]
+  return null
 }
 
-export default function ShowsPage() {
+function toYoutubeEmbed(url: string): string {
+  const id = toYoutubeId(url)
+  if (!id) return url
+  const tMatch = url.match(/[?&]t=(\d+)s?/)
+  const start = tMatch ? `?start=${tMatch[1]}` : ''
+  return `https://www.youtube.com/embed/${id}${start}`
+}
+
+async function canEmbedYoutube(url: string): Promise<boolean> {
+  try {
+    const res = await fetch(
+      `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`,
+      { next: { revalidate: 3600 } }
+    )
+    return res.ok
+  } catch {
+    return false
+  }
+}
+
+export default async function ShowsPage() {
+  // Check embed availability for all YouTube videos in parallel
+  const embedChecks = await Promise.all(
+    videos.map(async (v) => {
+      if (v.type !== 'youtube' || !v.url) return false
+      return canEmbedYoutube(v.url)
+    })
+  )
+
   return (
     <>
       {/* HERO */}
@@ -87,15 +109,42 @@ export default function ShowsPage() {
             {videos.map((video, i) => (
               <div key={i} className="space-y-3">
                 {video.type === 'youtube' && video.url && (
-                  <div className="relative aspect-video rounded-lg overflow-hidden bg-muted">
-                    <iframe
-                      src={toYoutubeEmbed(video.url)}
-                      title={video.title}
-                      loading="lazy"
-                      allowFullScreen
-                      className="absolute inset-0 w-full h-full"
-                    />
-                  </div>
+                  embedChecks[i] ? (
+                    <div className="relative aspect-video rounded-lg overflow-hidden bg-muted">
+                      <iframe
+                        src={toYoutubeEmbed(video.url)}
+                        title={video.title}
+                        loading="lazy"
+                        allowFullScreen
+                        className="absolute inset-0 w-full h-full"
+                      />
+                    </div>
+                  ) : (
+                    <a
+                      href={video.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="relative rounded-lg overflow-hidden bg-zinc-900 flex flex-col items-center justify-center gap-3 group block"
+                      style={{ aspectRatio: '16/9' }}
+                    >
+                      {toYoutubeId(video.url) && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={`https://img.youtube.com/vi/${toYoutubeId(video.url)}/hqdefault.jpg`}
+                          alt={video.title}
+                          className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-75 transition-opacity"
+                        />
+                      )}
+                      <div className="relative z-10 w-14 h-14 rounded-full bg-red-600 flex items-center justify-center group-hover:bg-red-500 transition-colors shadow-lg">
+                        <svg viewBox="0 0 24 24" fill="white" className="w-6 h-6 ml-1">
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                      </div>
+                      <span className="relative z-10 text-white text-xs font-semibold uppercase tracking-wider bg-black/50 px-3 py-1 rounded-full">
+                        Ver en YouTube
+                      </span>
+                    </a>
+                  )
                 )}
 
                 {video.type === 'instagram' && video.url && (

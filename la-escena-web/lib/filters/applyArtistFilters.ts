@@ -16,7 +16,10 @@ const PHYSICAL_ATTRIBUTE_PREFIXES: Array<{ prefix: string; field: string }> = [
 export function applyArtistFilters(artists: any[], filters: ArtistFiltersV2) {
   return artists.filter(artist => {
 
-    if (filters.category && artist.agencyProfile !== filters.category) return false
+    if (filters.category) {
+      const profiles = Array.isArray(artist.agencyProfile) ? artist.agencyProfile : [artist.agencyProfile]
+      if (!profiles.includes(filters.category)) return false
+    }
 
     if (filters.city && artist.city !== filters.city) return false
 
@@ -47,7 +50,8 @@ export function applyArtistFilters(artists: any[], filters: ArtistFiltersV2) {
         }
 
         const wanted = normalizeTag(tag)
-        const matchesCategory = Boolean(artist.agencyProfile) && normalizeTag(artist.agencyProfile) === wanted
+        const profiles = Array.isArray(artist.agencyProfile) ? artist.agencyProfile : [artist.agencyProfile]
+        const matchesCategory = profiles.some((p: string) => normalizeTag(p) === wanted)
         const matchesHashtag = Array.isArray(artist.hashtags) && artist.hashtags.some((h: string) => normalizeTag(h) === wanted)
         return matchesCategory || matchesHashtag
       })

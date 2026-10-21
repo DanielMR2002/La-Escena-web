@@ -12,7 +12,11 @@ export function getAvailableFilterOptions(artists: any[]) {
   let maxHeight:     number | null = null
 
   for (const artist of artists) {
-    if (artist.agencyProfile) categories.add(artist.agencyProfile)
+    if (Array.isArray(artist.agencyProfile)) {
+      artist.agencyProfile.forEach((p: string) => { if (p) categories.add(p) })
+    } else if (artist.agencyProfile) {
+      categories.add(artist.agencyProfile)
+    }
     if (artist.city)          cities.add(artist.city)
 
     if (Array.isArray(artist.styles)) {
