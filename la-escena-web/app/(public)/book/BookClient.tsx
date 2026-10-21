@@ -170,7 +170,7 @@ export default function BookClient({ gallery }: { gallery?: any[] }) {
                 </ul>
                 {pkg.whatsapp ? (
                   <a
-                    href={`https://wa.me/573106823504?text=${bookColectivoWhatsapp}`}
+                    href={`https://wa.me/573147767399?text=${bookColectivoWhatsapp}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-full inline-flex items-center justify-center gap-2 py-3 font-semibold text-sm uppercase tracking-wider rounded-sm bg-green-600 text-white hover:bg-green-700 transition-colors"

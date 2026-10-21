@@ -192,7 +192,7 @@ export default function ClasesClient({ teachers }: { teachers: Teacher[] }) {
             objetivos y disponibilidad.
           </p>
           <a
-            href={`https://wa.me/573106823504?text=${whatsappMessage}`}
+            href={`https://wa.me/573147767399?text=${whatsappMessage}`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-3 px-8 py-4 bg-green-600 text-white font-semibold text-sm uppercase tracking-wider rounded-sm hover:bg-green-700 transition-colors"
