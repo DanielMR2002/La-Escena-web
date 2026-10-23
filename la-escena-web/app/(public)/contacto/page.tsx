@@ -51,7 +51,7 @@ export default function ContactoPage() {
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Email</p>
-                      <p className="text-sm font-medium">laescenas@gmail.com</p>
+                      <p className="text-sm font-medium">laescena.s@gmail.com</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
