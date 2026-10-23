@@ -11,23 +11,61 @@ import { prisma } from "@/lib/prisma"
 import { sanityFreshClient, urlFor } from "@/lib/sanity"
 import { formatCategoryLabel } from "@/lib/artistCategories"
 
-const ACTIVITY = [
-  { color: "bg-primary", text: "Nueva revisión enviada por un artista", time: "hace 2 horas" },
-  { color: "bg-secondary", text: "Cliente creó una nueva shortlist", time: "hace 5 horas" },
-  { color: "bg-emerald-500", text: "Perfil de artista aprobado", time: "hace 1 día" },
-]
+function timeAgo(date: Date): string {
+  const diff = Math.floor((Date.now() - date.getTime()) / 1000)
+  if (diff < 60)    return "hace unos segundos"
+  if (diff < 3600)  return `hace ${Math.floor(diff / 60)} min`
+  if (diff < 86400) return `hace ${Math.floor(diff / 3600)} h`
+  return `hace ${Math.floor(diff / 86400)} días`
+}
 
 export default async function AdminDashboard() {
   const session = await requireAdmin()
 
-  const [user, clients, artists, pendingRevisions, pendingRevisionsCount, pendingShortlistsCount] = await Promise.all([
+  // Auto-cleanup: delete records older than 30 days
+  const cutoff = new Date()
+  cutoff.setDate(cutoff.getDate() - 30)
+  await Promise.all([
+    prisma.artistProfileRevision.deleteMany({ where: { createdAt: { lt: cutoff } } }),
+    prisma.clientShortlist.deleteMany({ where: { createdAt: { lt: cutoff } } }),
+  ])
+
+  const [user, clients, artists, pendingRevisions, pendingRevisionsCount, pendingShortlistsCount, recentRevisions, recentShortlists] = await Promise.all([
     prisma.user.findUnique({ where: { id: session.user.id } }),
     getClients(),
     getArtists(),
     getPendingRevisions(),
     getPendingRevisionsCount(),
     prisma.clientShortlist.count({ where: { status: "PENDING" } }),
+    prisma.artistProfileRevision.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 10,
+      include: { artist: { include: { user: true } } },
+    }),
+    prisma.clientShortlist.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 10,
+      include: { client: true },
+    }),
   ])
+
+  // Merge and sort last 5 events
+  const activity = [
+    ...recentRevisions.map(r => ({
+      color: r.status === "APPROVED" ? "bg-emerald-500" : r.status === "REJECTED" ? "bg-red-400" : "bg-primary",
+      text: `${r.artist.user.name ?? r.artist.user.email} — ${r.status === "PENDING" ? "envió una revisión de perfil" : r.status === "APPROVED" ? "revisión aprobada" : "revisión rechazada"}`,
+      time: timeAgo(r.createdAt),
+      date: r.createdAt,
+    })),
+    ...recentShortlists.map(s => ({
+      color: s.status === "APPROVED" ? "bg-emerald-500" : s.status === "REJECTED" ? "bg-red-400" : "bg-secondary",
+      text: `${s.client.name ?? s.client.email} — ${s.status === "PENDING" ? "creó una nueva shortlist" : s.status === "APPROVED" ? "shortlist aprobada" : "shortlist rechazada"}`,
+      time: timeAgo(s.createdAt),
+      date: s.createdAt,
+    })),
+  ]
+    .sort((a, b) => b.date.getTime() - a.date.getTime())
+    .slice(0, 5)
 
   const topRevisions = pendingRevisions.slice(0, 5)
   const sanityIds = topRevisions
@@ -134,18 +172,27 @@ export default async function AdminDashboard() {
 
         {/* Últimos movimientos */}
         <div className="bg-admin-elevated border border-admin-border rounded-xl p-6">
-          <h2 className="font-heading text-2xl tracking-wide text-admin-foreground mb-5">Últimos movimientos</h2>
-          <div className="space-y-4">
-            {ACTIVITY.map((a, i) => (
-              <div key={i} className="flex items-start gap-3">
-                <span className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${a.color}`} />
-                <div>
-                  <p className="text-sm text-admin-foreground/90 leading-snug">{a.text}</p>
-                  <p className="text-xs text-admin-muted mt-0.5">{a.time}</p>
-                </div>
-              </div>
-            ))}
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="font-heading text-2xl tracking-wide text-admin-foreground">Últimos movimientos</h2>
+            <Link href="/admin/historial" className="text-xs text-primary hover:underline shrink-0">
+              Ver historial →
+            </Link>
           </div>
+          {activity.length === 0 ? (
+            <p className="text-sm text-admin-muted py-8 text-center">No hay actividad reciente.</p>
+          ) : (
+            <div className="space-y-4">
+              {activity.map((a, i) => (
+                <div key={i} className="flex items-start gap-3">
+                  <span className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${a.color}`} />
+                  <div>
+                    <p className="text-sm text-admin-foreground/90 leading-snug">{a.text}</p>
+                    <p className="text-xs text-admin-muted mt-0.5">{a.time}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
