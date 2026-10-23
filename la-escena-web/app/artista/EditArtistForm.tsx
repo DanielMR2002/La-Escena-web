@@ -716,7 +716,7 @@ export default function EditArtistForm({
               className={inputCls}
             />
             <p className={helperCls}>
-              Etiquetas que describen tu estilo, separadas por coma. Ej: #salsa, #contemporáneo
+              Etiquetas con las que quieres que te identifiquen. Ej: #coreógrafo, #dancehall, #versatil, #freestyle
             </p>
           </div>
         </div>
