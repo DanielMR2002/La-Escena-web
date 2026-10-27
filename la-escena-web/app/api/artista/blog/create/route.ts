@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
       title,
       slug: { _type: "slug", current: slug },
       status: "pending",
-      authorName: session.user?.name || session.user?.email || "Artista",
+      authorName: (session.user as any)?.name || (session.user as any)?.email || "Artista",
       authorUserId: (session.user as any)?.id || undefined,
       excerpt,
       category,
