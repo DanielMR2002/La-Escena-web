@@ -123,6 +123,12 @@ export default function LoginPage() {
                 >
                   {loading ? "Ingresando…" : "Iniciar sesión"} <ArrowRight size={16} />
                 </button>
+
+                <p className="text-center">
+                  <a href="/recuperar-contrasena" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                    ¿Olvidaste tu contraseña?
+                  </a>
+                </p>
               </form>
             </div>
 
