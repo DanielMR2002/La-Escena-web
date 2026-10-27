@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic"
 
 import { requireAdmin } from "@/lib/auth"
-import { getPostById, urlFor } from "@/lib/sanity"
+import { getPostById, getPostCategories, urlFor } from "@/lib/sanity"
 import EditPostForm from "./EditPostForm"
 import Link from "next/link"
 
@@ -13,7 +13,10 @@ export default async function EditBlogPostPage({ params }: Props) {
   await requireAdmin()
   const { id } = await params
 
-  const post = await getPostById(id)
+  const [post, existingCategories] = await Promise.all([
+    getPostById(id),
+    getPostCategories(),
+  ])
 
   if (!post) {
     return (
@@ -33,5 +36,17 @@ export default async function EditBlogPostPage({ params }: Props) {
     ? urlFor(post.mainImage).width(600).height(300).fit("crop").url()
     : null
 
-  return <EditPostForm post={post} currentImageUrl={currentImageUrl} backHref="/admin/blog" />
+  const currentBottomImageUrl = post.bottomImage
+    ? urlFor(post.bottomImage).width(600).height(300).fit("crop").url()
+    : null
+
+  return (
+    <EditPostForm
+      post={post}
+      currentImageUrl={currentImageUrl}
+      currentBottomImageUrl={currentBottomImageUrl}
+      backHref="/admin/blog"
+      existingCategories={existingCategories}
+    />
+  )
 }

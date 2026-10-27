@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic"
 
 import { requireAdmin } from "@/lib/auth"
-import { getInternalPostById, urlFor } from "@/lib/sanity"
+import { getInternalPostById, getInternalPostCategories, urlFor } from "@/lib/sanity"
 import EditPostForm from "@/app/admin/blog/[id]/EditPostForm"
 import Link from "next/link"
 
@@ -13,7 +13,10 @@ export default async function EditInternalPostPage({ params }: Props) {
   await requireAdmin()
   const { id } = await params
 
-  const post = await getInternalPostById(id)
+  const [post, existingCategories] = await Promise.all([
+    getInternalPostById(id),
+    getInternalPostCategories(),
+  ])
 
   if (!post) {
     return (
@@ -33,13 +36,19 @@ export default async function EditInternalPostPage({ params }: Props) {
     ? urlFor(post.mainImage).width(600).height(300).fit("crop").url()
     : null
 
+  const currentBottomImageUrl = post.bottomImage
+    ? urlFor(post.bottomImage).width(600).height(300).fit("crop").url()
+    : null
+
   return (
     <EditPostForm
       post={post}
       currentImageUrl={currentImageUrl}
+      currentBottomImageUrl={currentBottomImageUrl}
       backHref="/admin/blog-interno"
       updateEndpoint={`/api/admin/blog-interno/${post._id}/update`}
       deleteEndpoint={`/api/admin/blog-interno/${post._id}/delete`}
+      existingCategories={existingCategories}
     />
   )
 }

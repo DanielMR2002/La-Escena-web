@@ -109,6 +109,25 @@ export default async function BlogPostPage({ params }: Props) {
           <div className={styles.content}>
             <PortableText value={post.body} />
           </div>
+
+          {post.bottomImage && (
+            <div className="mt-12 rounded-lg overflow-hidden">
+              <img
+                src={urlFor(post.bottomImage).width(800).height(400).fit('crop').url()}
+                alt=""
+                className="w-full"
+              />
+            </div>
+          )}
+
+          <div className="mt-12 pt-8 border-t border-zinc-200">
+            <Link
+              href="/blog"
+              className="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-foreground transition-colors"
+            >
+              <ArrowLeft size={16} /> Volver al blog
+            </Link>
+          </div>
         </div>
       </section>
     </>

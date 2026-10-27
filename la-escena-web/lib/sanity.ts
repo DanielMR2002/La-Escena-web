@@ -230,8 +230,10 @@ export async function getPostBySlug(slug: string) {
       title,
       excerpt,
       publishedAt,
+      category,
       body,
-      mainImage
+      mainImage,
+      bottomImage
     }`,
     { slug }
   )
@@ -245,11 +247,20 @@ export async function getPostById(id: string) {
       "slug": slug.current,
       excerpt,
       publishedAt,
+      category,
       body,
-      mainImage
+      mainImage,
+      bottomImage
     }`,
     { id }
   )
+}
+
+export async function getPostCategories(): Promise<string[]> {
+  const results = await sanityWriteClient.fetch(
+    `array::unique(*[_type == "post" && defined(category) && category != ""].category)`
+  )
+  return results ?? []
 }
 
 /* ================== BLOG INTERNO ================== */
@@ -276,10 +287,18 @@ export async function getInternalPostById(id: string) {
       "slug": slug.current,
       excerpt,
       publishedAt,
+      category,
       body,
-      mainImage
+      mainImage,
+      bottomImage
     }`,
     { id }
   )
 }
 
+export async function getInternalPostCategories(): Promise<string[]> {
+  const results = await sanityWriteClient.fetch(
+    `array::unique(*[_type == "internalPost" && defined(category) && category != ""].category)`
+  )
+  return results ?? []
+}
