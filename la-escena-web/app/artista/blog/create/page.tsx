@@ -121,13 +121,26 @@ export default function ArtistaCreatePostPage() {
           />
         </div>
 
-        {/* Imagen */}
+        {/* Imagen principal */}
         <div>
           <label className="block text-xs font-medium text-zinc-500 uppercase tracking-wide mb-1.5">
-            Imagen (opcional)
+            Imagen principal (opcional)
           </label>
           <input
             name="file"
+            type="file"
+            accept="image/*"
+            className="w-full text-sm text-zinc-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-zinc-200 file:text-xs file:font-medium file:text-zinc-600 file:bg-white hover:file:bg-zinc-50"
+          />
+        </div>
+
+        {/* Imagen al fondo */}
+        <div>
+          <label className="block text-xs font-medium text-zinc-500 uppercase tracking-wide mb-1.5">
+            Imagen al fondo del post (opcional)
+          </label>
+          <input
+            name="bottomFile"
             type="file"
             accept="image/*"
             className="w-full text-sm text-zinc-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-zinc-200 file:text-xs file:font-medium file:text-zinc-600 file:bg-white hover:file:bg-zinc-50"

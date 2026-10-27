@@ -37,6 +37,12 @@ export async function POST(req: NextRequest) {
       mainImage = await uploadImage(file, sanityWriteClient)
     }
 
+    let bottomImage: any = undefined
+    const bottomFile = formData.get("bottomFile") as File | null
+    if (bottomFile && bottomFile.size > 0) {
+      bottomImage = await uploadImage(bottomFile, sanityWriteClient)
+    }
+
     const doc: any = {
       _type: "post",
       title,
@@ -50,6 +56,7 @@ export async function POST(req: NextRequest) {
       publishedAt: new Date().toISOString(),
     }
     if (mainImage) doc.mainImage = mainImage
+    if (bottomImage) doc.bottomImage = bottomImage
 
     await sanityWriteClient.create(doc)
     return NextResponse.json({ ok: true })
