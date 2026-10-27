@@ -16,13 +16,13 @@ export async function POST(req: NextRequest) {
     authorName: session.user.name || session.user.email || "Usuario",
     authorUserId: (session.user as any).id || undefined,
     body: body.trim(),
-    approved: false,
+    approved: true,
     createdAt: new Date().toISOString(),
   }
   if (parentCommentId) {
     doc.parentComment = { _type: "reference", _ref: parentCommentId }
   }
 
-  await sanityWriteClient.create(doc)
-  return NextResponse.json({ ok: true })
+  const created = await sanityWriteClient.create(doc)
+  return NextResponse.json({ ok: true, id: created._id })
 }

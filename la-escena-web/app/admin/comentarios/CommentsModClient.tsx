@@ -2,33 +2,32 @@
 
 import { useState } from "react"
 
-interface PendingComment {
+interface CommentItem {
   _id: string
   authorName: string
   body: string
   createdAt: string
   postTitle?: string
-  postId?: string
   parentBody?: string
 }
 
-export default function CommentsModClient({ comments: initial }: { comments: PendingComment[] }) {
+export default function CommentsModClient({ comments: initial }: { comments: CommentItem[] }) {
   const [comments, setComments] = useState(initial)
   const [loading, setLoading] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
 
-  const handle = async (id: string, action: "approve" | "reject") => {
-    setLoading(id + action)
-    setMessage(null)
-    const res = await fetch("/api/admin/comments/moderate", {
-      method: "POST",
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("¿Eliminar este comentario?")) return
+    setLoading(id)
+    const res = await fetch("/api/admin/comments/delete", {
+      method: "DELETE",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, action }),
+      body: JSON.stringify({ id }),
     })
     setLoading(null)
-    if (!res.ok) { setMessage("Error al procesar"); return }
+    if (!res.ok) { setMessage("Error al eliminar"); return }
     setComments(c => c.filter(cm => cm._id !== id))
-    setMessage(action === "approve" ? "Comentario aprobado" : "Comentario rechazado")
+    setMessage("Comentario eliminado")
     setTimeout(() => setMessage(null), 3000)
   }
 
@@ -39,7 +38,7 @@ export default function CommentsModClient({ comments: initial }: { comments: Pen
       )}
       {comments.length === 0 && (
         <div className="bg-white border border-zinc-200 rounded-xl p-12 text-center">
-          <p className="text-zinc-500">No hay comentarios pendientes</p>
+          <p className="text-zinc-500">No hay comentarios publicados aún</p>
         </div>
       )}
       {comments.map(cm => (
@@ -64,22 +63,13 @@ export default function CommentsModClient({ comments: initial }: { comments: Pen
               )}
               <p className="text-sm text-zinc-700">{cm.body}</p>
             </div>
-            <div className="flex gap-2 shrink-0">
-              <button
-                onClick={() => handle(cm._id, "approve")}
-                disabled={loading !== null}
-                className="px-3 py-1.5 text-xs font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
-              >
-                {loading === cm._id + "approve" ? "..." : "Aprobar"}
-              </button>
-              <button
-                onClick={() => handle(cm._id, "reject")}
-                disabled={loading !== null}
-                className="px-3 py-1.5 text-xs font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
-              >
-                {loading === cm._id + "reject" ? "..." : "Rechazar"}
-              </button>
-            </div>
+            <button
+              onClick={() => handleDelete(cm._id)}
+              disabled={loading === cm._id}
+              className="px-3 py-1.5 text-xs font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50 shrink-0"
+            >
+              {loading === cm._id ? "..." : "Eliminar"}
+            </button>
           </div>
         </div>
       ))}

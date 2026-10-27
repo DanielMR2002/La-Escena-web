@@ -5,6 +5,8 @@ import { PortableText } from '@portabletext/react'
 import styles from '@/styles/blog.module.css'
 import type { Metadata } from 'next'
 import BlogComments from '@/app/components/BlogComments'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,9 +15,7 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { slug } = await params
   const post = await getPostBySlug(slug)
-
   if (!post) return { title: 'Post no encontrado | La Escena' }
-
   return {
     title: `${post.title} | La Escena`,
     description: post.excerpt,
@@ -35,7 +35,10 @@ interface Props {
 
 export default async function BlogPostPage({ params }: Props) {
   const { slug } = await params
-  const post = await getPostBySlug(slug)
+  const [post, session] = await Promise.all([
+    getPostBySlug(slug),
+    getServerSession(authOptions),
+  ])
 
   if (!post) {
     return (
@@ -50,12 +53,12 @@ export default async function BlogPostPage({ params }: Props) {
     )
   }
 
-  // Obtener el _id del post para los comentarios
   const postDoc = await sanityClient.fetch(
     `*[_type == "post" && slug.current == $slug][0]{ _id }`,
     { slug }
   )
   const comments = postDoc?._id ? await getApprovedComments(postDoc._id) : []
+  const isAdmin = (session?.user as any)?.role === 'ADMIN'
 
   return (
     <>
@@ -124,9 +127,12 @@ export default async function BlogPostPage({ params }: Props) {
             </Link>
           </div>
 
-          {/* COMENTARIOS */}
           {postDoc?._id && (
-            <BlogComments postId={postDoc._id} initialComments={comments} />
+            <BlogComments
+              postId={postDoc._id}
+              initialComments={comments}
+              isAdmin={isAdmin}
+            />
           )}
         </div>
       </section>

@@ -366,3 +366,17 @@ export async function getPendingComments() {
     }
   `)
 }
+
+export async function getAllComments() {
+  return sanityWriteClient.fetch(`
+    *[_type == "comment" && approved == true] | order(createdAt desc){
+      _id,
+      authorName,
+      body,
+      createdAt,
+      "postTitle": post->title,
+      "postId": post._ref,
+      "parentBody": parentComment->body
+    }
+  `)
+}
