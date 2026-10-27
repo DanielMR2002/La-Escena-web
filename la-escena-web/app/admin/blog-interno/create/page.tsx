@@ -51,7 +51,7 @@ export default function CreateInternalPostPage() {
     router.push(`/admin/blog-interno/${data.id}`)
   }
 
-  const inputClass = "w-full px-3 py-2 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+  const inputClass = "w-full px-3 py-2 border border-zinc-200 rounded-lg text-sm text-zinc-800 bg-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
 
   return (
     <div>
@@ -184,7 +184,7 @@ export default function CreateInternalPostPage() {
         <button
           type="submit"
           disabled={loading}
-          className="px-5 py-2.5 bg-primary text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-5 py-2.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? "Publicando..." : "Publicar Noticia"}
         </button>
