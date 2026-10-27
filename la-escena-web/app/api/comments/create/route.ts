@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   const doc: any = {
     _type: "comment",
     post: { _type: "reference", _ref: postId },
-    authorName: session.user.name || session.user.email || "Usuario",
+    authorName: (session.user as any)?.name || (session.user as any)?.email || "Usuario",
     authorUserId: (session.user as any).id || undefined,
     body: body.trim(),
     approved: true,
