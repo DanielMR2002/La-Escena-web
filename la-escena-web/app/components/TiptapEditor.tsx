@@ -143,8 +143,8 @@ export default function TiptapEditor({ content, onChange, placeholder }: Props) 
           I
         </button>
         <span className="w-px bg-zinc-200 mx-1" />
-        {btn("H2", () => editor.chain().focus().toggleHeading({ level: 2 }).run(), editor.isActive("heading", { level: 2 }))}
-        {btn("H3", () => editor.chain().focus().toggleHeading({ level: 3 }).run(), editor.isActive("heading", { level: 3 }))}
+        {btn("Título", () => editor.chain().focus().toggleHeading({ level: 2 }).run(), editor.isActive("heading", { level: 2 }))}
+        {btn("Subtítulo", () => editor.chain().focus().toggleHeading({ level: 3 }).run(), editor.isActive("heading", { level: 3 }))}
         <span className="w-px bg-zinc-200 mx-1" />
         {btn("• Lista", () => editor.chain().focus().toggleBulletList().run(), editor.isActive("bulletList"))}
         <span className="w-px bg-zinc-200 mx-1" />

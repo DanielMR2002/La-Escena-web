@@ -109,7 +109,7 @@ export default function CreateInternalPostPage() {
             <button
               type="button"
               onClick={() => setSlug(slugify(title))}
-              className="px-3 py-2 text-xs font-medium border border-zinc-200 rounded-lg hover:bg-zinc-50 transition-colors shrink-0"
+              className="px-3 py-2 text-xs font-medium text-zinc-700 border border-zinc-300 rounded-lg hover:bg-zinc-100 transition-colors shrink-0"
             >
               ↺ Regenerar
             </button>
