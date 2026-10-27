@@ -60,7 +60,7 @@ export default function BlogComments({ postId, initialComments, isAdmin = false 
     const data = await res.json()
     const newComment = {
       _id: data.id,
-      authorName: session?.user?.name || session?.user?.email || "Tú",
+      authorName: (session?.user as any)?.name || (session?.user as any)?.email || "Tú",
       body: text.trim(),
       createdAt: new Date().toISOString(),
     }
