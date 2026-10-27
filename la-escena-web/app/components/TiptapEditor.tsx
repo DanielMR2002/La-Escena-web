@@ -106,7 +106,7 @@ export default function TiptapEditor({ content, onChange, placeholder }: Props) 
     if (!editor || initialized.current) return
     const html = initialHtml.current
     if (html) {
-      editor.commands.setContent(html, false)
+      editor.commands.setContent(html)
       initialized.current = true
     }
   }, [editor])
