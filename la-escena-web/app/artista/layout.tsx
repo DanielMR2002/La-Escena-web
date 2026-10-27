@@ -19,6 +19,9 @@ export default function ArtistaLayout({ children }: { children: ReactNode }) {
           <Link href="/artista/noticias" className="text-sm text-zinc-300 hover:text-white transition-colors">
             Noticias
           </Link>
+          <Link href="/artista/blog/create" className="text-sm text-zinc-300 hover:text-white transition-colors">
+            Crear post
+          </Link>
           <Link href="/" className="text-sm text-zinc-400 hover:text-white transition-colors">
             ← Volver al sitio
           </Link>

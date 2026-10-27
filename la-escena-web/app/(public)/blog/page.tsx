@@ -1,4 +1,4 @@
-import { getPosts } from '@/lib/sanity'
+import { getPublicPosts } from '@/lib/sanity'
 import BlogList from '@/app/components/BlogList'
 import type { Metadata } from 'next'
 
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 }
 
 export default async function BlogPage() {
-  const posts = await getPosts()
+  const posts = await getPublicPosts()
 
   return (
     <>

@@ -15,11 +15,31 @@ export const post = defineType({
       name: 'slug',
       title: 'Slug',
       type: 'slug',
-      options: {
-        source: 'title',
-        maxLength: 96
-      },
+      options: { source: 'title', maxLength: 96 },
       validation: Rule => Rule.required()
+    }),
+    defineField({
+      name: 'status',
+      title: 'Estado',
+      type: 'string',
+      options: {
+        list: [
+          { title: 'Publicado', value: 'published' },
+          { title: 'Pendiente de revisión', value: 'pending' },
+        ],
+        layout: 'radio'
+      },
+      initialValue: 'published'
+    }),
+    defineField({
+      name: 'authorName',
+      title: 'Autor (nombre)',
+      type: 'string',
+    }),
+    defineField({
+      name: 'authorUserId',
+      title: 'Autor (ID de usuario)',
+      type: 'string',
     }),
     defineField({
       name: 'excerpt',
@@ -27,6 +47,11 @@ export const post = defineType({
       type: 'text',
       rows: 3,
       validation: Rule => Rule.max(160)
+    }),
+    defineField({
+      name: 'category',
+      title: 'Categoría',
+      type: 'string',
     }),
     defineField({
       name: 'publishedAt',
@@ -39,9 +64,13 @@ export const post = defineType({
       name: 'mainImage',
       title: 'Imagen principal',
       type: 'image',
-      options: {
-        hotspot: true
-      }
+      options: { hotspot: true }
+    }),
+    defineField({
+      name: 'bottomImage',
+      title: 'Imagen al fondo',
+      type: 'image',
+      options: { hotspot: true }
     }),
     defineField({
       name: 'body',

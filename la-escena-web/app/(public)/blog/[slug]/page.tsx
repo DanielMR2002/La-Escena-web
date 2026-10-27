@@ -1,9 +1,10 @@
 import Link from 'next/link'
 import { ArrowLeft, Calendar } from 'lucide-react'
-import { getPostBySlug, urlFor } from '@/lib/sanity'
+import { getPostBySlug, getApprovedComments, sanityClient, urlFor } from '@/lib/sanity'
 import { PortableText } from '@portabletext/react'
 import styles from '@/styles/blog.module.css'
 import type { Metadata } from 'next'
+import BlogComments from '@/app/components/BlogComments'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,9 +14,7 @@ export async function generateMetadata(
   const { slug } = await params
   const post = await getPostBySlug(slug)
 
-  if (!post) {
-    return { title: 'Post no encontrado | La Escena' }
-  }
+  if (!post) return { title: 'Post no encontrado | La Escena' }
 
   return {
     title: `${post.title} | La Escena`,
@@ -24,11 +23,7 @@ export async function generateMetadata(
       title: post.title,
       description: post.excerpt,
       images: post.mainImage
-        ? [{
-            url: urlFor(post.mainImage).width(1200).height(630).url(),
-            width: 1200,
-            height: 630,
-          }]
+        ? [{ url: urlFor(post.mainImage).width(1200).height(630).url(), width: 1200, height: 630 }]
         : [],
     },
   }
@@ -46,19 +41,21 @@ export default async function BlogPostPage({ params }: Props) {
     return (
       <section className="py-20 bg-background">
         <div className="container max-w-3xl text-center space-y-4">
-          <h1 className="font-heading text-4xl tracking-wide">
-            Post no encontrado
-          </h1>
-          <Link
-            href="/blog"
-            className="inline-flex items-center gap-2 text-sm text-accent hover:underline"
-          >
+          <h1 className="font-heading text-4xl tracking-wide">Post no encontrado</h1>
+          <Link href="/blog" className="inline-flex items-center gap-2 text-sm text-accent hover:underline">
             <ArrowLeft size={16} /> Volver al blog
           </Link>
         </div>
       </section>
     )
   }
+
+  // Obtener el _id del post para los comentarios
+  const postDoc = await sanityClient.fetch(
+    `*[_type == "post" && slug.current == $slug][0]{ _id }`,
+    { slug }
+  )
+  const comments = postDoc?._id ? await getApprovedComments(postDoc._id) : []
 
   return (
     <>
@@ -81,9 +78,7 @@ export default async function BlogPostPage({ params }: Props) {
               <span className="flex items-center gap-1.5 text-xs text-primary-foreground/40">
                 <Calendar size={12} />
                 {new Date(post.publishedAt).toLocaleDateString('es-CO', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
+                  year: 'numeric', month: 'long', day: 'numeric',
                 })}
               </span>
             )}
@@ -128,6 +123,11 @@ export default async function BlogPostPage({ params }: Props) {
               <ArrowLeft size={16} /> Volver al blog
             </Link>
           </div>
+
+          {/* COMENTARIOS */}
+          {postDoc?._id && (
+            <BlogComments postId={postDoc._id} initialComments={comments} />
+          )}
         </div>
       </section>
     </>

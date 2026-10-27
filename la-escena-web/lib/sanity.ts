@@ -302,3 +302,67 @@ export async function getInternalPostCategories(): Promise<string[]> {
   )
   return results ?? []
 }
+
+/* ================== POSTS PENDIENTES (ARTISTAS) ================== */
+
+export async function getPendingPosts() {
+  return sanityWriteClient.fetch(`
+    *[_type == "post" && status == "pending"] | order(publishedAt desc){
+      _id,
+      title,
+      "slug": slug.current,
+      excerpt,
+      publishedAt,
+      authorName,
+      category
+    }
+  `)
+}
+
+export async function getPublicPosts() {
+  return sanityClient.fetch(`
+    *[_type == "post" && (status == "published" || !defined(status))] | order(publishedAt desc){
+      _id,
+      title,
+      slug,
+      excerpt,
+      publishedAt,
+      mainImage,
+      category
+    }
+  `)
+}
+
+/* ================== COMENTARIOS ================== */
+
+export async function getApprovedComments(postId: string) {
+  return sanityClient.fetch(
+    `*[_type == "comment" && post._ref == $postId && approved == true && !defined(parentComment)] | order(createdAt asc){
+      _id,
+      authorName,
+      body,
+      createdAt,
+      "replies": *[_type == "comment" && parentComment._ref == ^._id && approved == true] | order(createdAt asc){
+        _id,
+        authorName,
+        body,
+        createdAt
+      }
+    }`,
+    { postId }
+  )
+}
+
+export async function getPendingComments() {
+  return sanityWriteClient.fetch(`
+    *[_type == "comment" && approved == false] | order(createdAt asc){
+      _id,
+      authorName,
+      body,
+      createdAt,
+      "postTitle": post->title,
+      "postId": post._ref,
+      "parentBody": parentComment->body
+    }
+  `)
+}
