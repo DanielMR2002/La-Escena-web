@@ -82,8 +82,16 @@ export async function POST(req: Request) {
       },
     })
 
+    // Marcar la revisión aprobada como APPROVED (no borrarla,
+    // para que nameIsLocked funcione correctamente)
+    await prisma.artistProfileRevision.update({
+      where: { id: revision.id },
+      data: { status: "APPROVED", reviewedAt: new Date() },
+    })
+
+    // Borrar solo las otras revisiones pendientes o rechazadas
     await prisma.artistProfileRevision.deleteMany({
-      where: { artistId: revision.artistId },
+      where: { artistId: revision.artistId, id: { not: revision.id } },
     })
 
     return NextResponse.json({ success: true })

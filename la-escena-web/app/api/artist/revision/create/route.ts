@@ -24,6 +24,16 @@ export async function POST(req: Request) {
       )
     }
 
+    // Si ya hay una revisión aprobada, eliminar el nombre de los datos
+    // para que no pueda modificarse aunque el cliente lo envíe
+    const hasApprovedRevision = (await prisma.artistProfileRevision.count({
+      where: { artistId: profile.id, status: "APPROVED" },
+    })) > 0
+
+    if (hasApprovedRevision && data?.name !== undefined) {
+      delete data.name
+    }
+
     await prisma.artistProfileRevision.create({
       data: {
         artistId: profile.id,
