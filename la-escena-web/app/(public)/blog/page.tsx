@@ -1,5 +1,6 @@
 import { getPublicPosts } from '@/lib/sanity'
 import BlogList from '@/app/components/BlogList'
+import BlogPublishButton from '@/app/components/BlogPublishButton'
 import type { Metadata } from 'next'
 
 export const dynamic = 'force-dynamic'
@@ -29,6 +30,10 @@ export default async function BlogPage() {
       {/* POSTS */}
       <section className="py-20 bg-background">
         <div className="container max-w-4xl">
+          <div className="flex items-center justify-between mb-8">
+            <p className="text-sm text-zinc-400">{posts.length} {posts.length === 1 ? 'publicación' : 'publicaciones'}</p>
+            <BlogPublishButton />
+          </div>
           <BlogList posts={posts} />
         </div>
       </section>
