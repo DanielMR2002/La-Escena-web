@@ -201,7 +201,7 @@ export default function BlogComments({ postId, initialComments, isAdmin = false 
       {session ? (
         <div className="bg-zinc-50 rounded-xl border border-zinc-200 p-5">
           <p className="text-sm font-medium text-zinc-700 mb-3">
-            Comentar como <span className="text-zinc-900">{session.user?.name || session.user?.email}</span>
+            Comentar como <span className="text-zinc-900">{(session?.user as any)?.name || (session?.user as any)?.email}</span>
           </p>
           {error && (
             <div className="mb-3 px-3 py-2 rounded-lg text-sm bg-red-50 text-red-700 border border-red-200">{error}</div>
