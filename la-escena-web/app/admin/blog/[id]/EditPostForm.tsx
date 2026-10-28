@@ -85,7 +85,7 @@ export default function EditPostForm({
   const handleDelete = async () => {
     if (!window.confirm("¿Eliminar este post? Esta acción no se puede deshacer.")) return
     setDeleting(true)
-    const res = await fetch(resolvedDelete, { method: "DELETE" })
+    const res = await fetch(resolvedDelete, { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: post._id }) })
     setDeleting(false)
     if (!res.ok) {
       setMessage({ type: "error", text: "Error al eliminar el post" })
