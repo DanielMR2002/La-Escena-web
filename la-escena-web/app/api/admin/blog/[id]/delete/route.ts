@@ -10,7 +10,6 @@ export async function DELETE(
     await requireAdmin()
     const { id } = await params
 
-    // El id puede venir del URL param o del body
     let docId = id
     try {
       const body = await req.json()
@@ -21,6 +20,16 @@ export async function DELETE(
       return NextResponse.json({ error: "ID requerido" }, { status: 400 })
     }
 
+    // Primero borrar todos los comentarios que referencian este post
+    const comments = await sanityWriteClient.fetch(
+      `*[_type == "comment" && post._ref == $id]._id`,
+      { id: docId }
+    )
+    for (const commentId of comments) {
+      await sanityWriteClient.delete(commentId)
+    }
+
+    // Borrar el post
     await sanityWriteClient.delete(docId)
 
     // Intentar borrar el draft si existe
