@@ -55,7 +55,7 @@ export default async function AdminBlogPage() {
                 </td>
                 <td className="px-6 py-4">
                   <Link href={`/admin/blog/${post._id}`}>
-                    <button className="px-3 py-1.5 text-xs font-medium border border-zinc-300 rounded-lg hover:bg-zinc-100 transition-colors">
+                    <button className="px-3 py-1.5 text-xs font-medium text-zinc-700 border border-zinc-300 rounded-lg hover:bg-zinc-100 transition-colors">
                       Editar
                     </button>
                   </Link>

@@ -10,11 +10,15 @@ export async function DELETE(
     await requireAdmin()
     const { id } = await params
 
-    await sanityWriteClient.delete(id)
+    // Borrar tanto el documento publicado como su draft si existe
+    await Promise.allSettled([
+      sanityWriteClient.delete(id),
+      sanityWriteClient.delete(`drafts.${id}`),
+    ])
 
     return NextResponse.json({ success: true })
-  } catch (error) {
+  } catch (error: any) {
     console.error("ERROR blog/delete:", error)
-    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
+    return NextResponse.json({ error: error?.message || "Error interno del servidor" }, { status: 500 })
   }
 }
