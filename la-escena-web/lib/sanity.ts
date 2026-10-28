@@ -212,7 +212,7 @@ export function textToBlocks(text: string) {
 }
 
 export async function getPosts() {
-  return sanityClient.fetch(`
+  return sanityWriteClient.fetch(`
     *[_type == "post"] | order(publishedAt desc){
       _id,
       title,
