@@ -58,6 +58,7 @@ export async function POST(req: Request) {
       title: title.trim(),
       slug: { _type: "slug", current: slugVal?.trim() || slugify(title) },
       publishedAt: new Date().toISOString(),
+      status: "published",
     }
 
     if (excerpt?.trim()) doc.excerpt = excerpt.trim()

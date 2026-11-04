@@ -320,7 +320,7 @@ export async function getPendingPosts() {
 }
 
 export async function getPublicPosts() {
-  return sanityClient.fetch(`
+  return sanityWriteClient.fetch(`
     *[_type == "post" && (status == "published" || !defined(status))] | order(publishedAt desc){
       _id,
       title,
