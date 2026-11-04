@@ -6,6 +6,6 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: '*',
       allow: '/'
     },
-    sitemap: 'https://la-escena-web-dusky.vercel.app/sitemap.xml'
+    sitemap: 'https://www.laescena.com.co/sitemap.xml'
   }
 }
