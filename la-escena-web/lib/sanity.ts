@@ -266,7 +266,7 @@ export async function getPostCategories(): Promise<string[]> {
 /* ================== BLOG INTERNO ================== */
 
 export async function getInternalPosts() {
-  return sanityClient.fetch(`
+  return sanityWriteClient.fetch(`
     *[_type == "internalPost"] | order(publishedAt desc){
       _id,
       title,

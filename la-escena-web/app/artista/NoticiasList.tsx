@@ -1,17 +1,14 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Calendar } from "lucide-react"
-import { PortableText } from "@portabletext/react"
-import styles from "@/styles/blog.module.css"
+import { Calendar, ArrowRight } from "lucide-react"
+import Link from "next/link"
 
 interface InternalPost {
   _id: string
   title: string
   excerpt?: string
   publishedAt?: string
-  mainImage?: any
-  body?: any[]
   imageUrl?: string
 }
 
@@ -75,11 +72,12 @@ export default function NoticiasList({ posts }: { posts: InternalPost[] }) {
               </p>
             )}
 
-            {post.body && post.body.length > 0 && (
-              <div className={styles.content}>
-                <PortableText value={post.body} />
-              </div>
-            )}
+            <Link
+              href={`/artista/noticias/${post._id}`}
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:underline mt-2"
+            >
+              Leer más <ArrowRight size={14} />
+            </Link>
           </div>
         </motion.article>
       ))}
