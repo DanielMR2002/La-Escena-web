@@ -14,7 +14,7 @@ export const SERVICIOS = [
   {
     slug: "kits-de-contenido",
     icon: Film,
-    title: "Kits de Contenido",
+    title: "Baile Para Tus Campañas",
     desc: "Paquetes completos de fotografía y video para fortalecer tu presencia digital. Incluye la creación de contenido pensado para campañas, redes sociales y plataformas digitales, acompañado de una estrategia de marketing para maximizar su impacto.",
   },
   {

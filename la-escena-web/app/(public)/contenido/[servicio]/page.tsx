@@ -9,7 +9,7 @@ const SERVICIOS: Record<string, { title: string; desc: string }> = {
     desc: 'Contenido dinámico y de alto impacto para redes sociales. Creamos reels y TikToks con coreografías, conceptos creativos y talento profesional para aumentar el alcance y la conexión de tu marca con su audiencia.',
   },
   'kits-de-contenido': {
-    title: 'Kits de Contenido',
+    title: 'Baile Para Tus Campañas',
     desc: 'Paquetes completos de fotografía y video para fortalecer tu presencia digital. Incluye la creación de contenido pensado para campañas, redes sociales y plataformas digitales, acompañado de una estrategia de marketing para maximizar su impacto.',
   },
   'cobertura-de-eventos': {
