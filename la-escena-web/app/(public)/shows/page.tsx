@@ -122,7 +122,7 @@ export default async function ShowsPage() {
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             {videos.map((video, i) => (
-              <div key={i} className={`space-y-3${video.type === 'instagram' ? ' md:col-start-2' : ''}`}>
+              <div key={i} className="space-y-3">
                 {video.type === 'youtube' && video.url && (
                   embedChecks[i] ? (
                     <div className="relative aspect-video rounded-lg overflow-hidden bg-muted">
