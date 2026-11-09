@@ -41,7 +41,18 @@ export async function generateMetadata({
 }
 
 // Portafolio específico por servicio
-const PORTFOLIO_CAMPAIGNS: Record<string, { campaign: string; reels: { url: string; label: string }[]; cta?: { label: string } }[]> = {
+const PORTFOLIO_CAMPAIGNS: Record<string, { campaign: string; reels: { url: string; label: string }[]; youtubeVideos?: { url: string; title: string }[]; cta?: { label: string } }[]> = {
+  'kits-de-contenido': [
+    {
+      campaign: "Videos de Contenido",
+      reels: [],
+      youtubeVideos: [
+        { url: "https://www.youtube.com/watch?v=8qEMSynh4js", title: "BADMAN PARTY VIDEO DANCE by Sara Sierra" },
+        { url: "https://www.youtube.com/watch?v=xd9Dhk9NwZQ", title: "Basshall Session #1 choreo por SARA SIERRA" },
+        { url: "https://www.youtube.com/watch?v=XyWkd5ytmOo", title: "CERQUITA Raiser Suena Nitido Coreo por SARA SIERRA" },
+      ],
+    },
+  ],
   'reels-tiktoks': [
     {
       campaign: "Campaña Aria Vega — Warner, TOTOTO",
@@ -98,7 +109,28 @@ export default async function ServicioContenidoPage({
                   <p className="text-sm font-semibold uppercase tracking-widest text-primary mb-6">
                     {camp.campaign}
                   </p>
-                  {camp.reels.length > 0 ? (
+                  {camp.youtubeVideos && camp.youtubeVideos.length > 0 ? (
+                    <div className="grid md:grid-cols-3 gap-6">
+                      {camp.youtubeVideos.map((v) => {
+                        const idMatch = v.url.match(/[?&]v=([^&]+)/)
+                        const ytId = idMatch ? idMatch[1] : null
+                        return (
+                          <div key={v.url} className="space-y-3">
+                            <div className="relative aspect-video rounded-lg overflow-hidden bg-zinc-900">
+                              <iframe
+                                src={`https://www.youtube.com/embed/${ytId}`}
+                                title={v.title}
+                                loading="lazy"
+                                allowFullScreen
+                                className="absolute inset-0 w-full h-full"
+                              />
+                            </div>
+                            <h3 className="font-heading text-base tracking-wide text-primary-foreground text-center">{v.title}</h3>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  ) : camp.reels.length > 0 ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
                       {camp.reels.map((reel) => {
                         const code = reel.url.split('/reel/')[1]?.replace(/\//g, '')

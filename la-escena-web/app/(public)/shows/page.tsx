@@ -36,28 +36,13 @@ const videos: ShowVideo[] = [
     type: "youtube",
   },
   {
-    title: "J Balvin | Ciudad Primavera 2025-2026 | LA ESCENA",
-    url: "https://www.youtube.com/watch?v=qHsNfsLxu3Q",
-    type: "youtube",
-  },
-  {
-    title: "BADMAN PARTY VIDEO DANCE by Sara Sierra",
-    url: "https://www.youtube.com/watch?v=8qEMSynh4js",
-    type: "youtube",
-  },
-  {
-    title: "Basshall Session #1 choreo por SARA SIERRA",
-    url: "https://www.youtube.com/watch?v=xd9Dhk9NwZQ",
-    type: "youtube",
-  },
-  {
-    title: "CERQUITA Raiser Suena Nitido Coreo por SARA SIERRA",
-    url: "https://www.youtube.com/watch?v=XyWkd5ytmOo",
-    type: "youtube",
-  },
-  {
     title: "Beychella — Show Tributo a Beyoncé. Dirección coreográfica, artística y general",
     url: "https://www.youtube.com/watch?v=cvHRsDMz9Qw&t=226s",
+    type: "youtube",
+  },
+  {
+    title: "J Balvin | Ciudad Primavera 2025-2026 | LA ESCENA",
+    url: "https://www.youtube.com/watch?v=qHsNfsLxu3Q",
     type: "youtube",
   },
   {
