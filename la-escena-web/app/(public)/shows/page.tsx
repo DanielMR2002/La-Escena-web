@@ -16,11 +16,6 @@ type ShowVideo = {
 
 const videos: ShowVideo[] = [
   {
-    title: "Show Movistar Arena con John Alex Castaño — Dirección coreográfica y staging",
-    url: "https://www.instagram.com/reel/DdSIQUMxuza/?stkn=amFqandvcmdmbDNm",
-    type: "instagram",
-  },
-  {
     title: "Travesía World Show Abril 2026 — Panaca Puntacana. Dirección coreográfica y artística",
     url: "https://www.youtube.com/watch?v=MDNU3LyvmbM",
     type: "youtube",
@@ -28,11 +23,6 @@ const videos: ShowVideo[] = [
   {
     title: "Show de Tennis por Colombiana en Colombiamoda — Dirección coreográfica y artística",
     url: "https://youtu.be/ytNrKQnmbNs?si=vwv21EFxlmWGi3Ho",
-    type: "youtube",
-  },
-  {
-    title: "Beychella — Show Tributo a Beyoncé. Dirección coreográfica, artística y general",
-    url: "https://www.youtube.com/watch?v=cvHRsDMz9Qw&t=226s",
     type: "youtube",
   },
   {
@@ -44,6 +34,36 @@ const videos: ShowVideo[] = [
     title: "Show para Johnny Walker en Feria de Flores — Dirección coreográfica y creativa",
     url: "https://youtu.be/2b84_FrlEY4?si=1DsTPDx4jTdE8IS4",
     type: "youtube",
+  },
+  {
+    title: "J Balvin | Ciudad Primavera 2025-2026 | LA ESCENA",
+    url: "https://www.youtube.com/watch?v=qHsNfsLxu3Q",
+    type: "youtube",
+  },
+  {
+    title: "BADMAN PARTY VIDEO DANCE by Sara Sierra",
+    url: "https://www.youtube.com/watch?v=8qEMSynh4js",
+    type: "youtube",
+  },
+  {
+    title: "Basshall Session #1 choreo por SARA SIERRA",
+    url: "https://www.youtube.com/watch?v=xd9Dhk9NwZQ",
+    type: "youtube",
+  },
+  {
+    title: "CERQUITA Raiser Suena Nitido Coreo por SARA SIERRA",
+    url: "https://www.youtube.com/watch?v=XyWkd5ytmOo",
+    type: "youtube",
+  },
+  {
+    title: "Beychella — Show Tributo a Beyoncé. Dirección coreográfica, artística y general",
+    url: "https://www.youtube.com/watch?v=cvHRsDMz9Qw&t=226s",
+    type: "youtube",
+  },
+  {
+    title: "Show Movistar Arena con John Alex Castaño — Dirección coreográfica y staging",
+    url: "https://www.instagram.com/reel/DdSIQUMxuza/?stkn=amFqandvcmdmbDNm",
+    type: "instagram",
   },
 ]
 
