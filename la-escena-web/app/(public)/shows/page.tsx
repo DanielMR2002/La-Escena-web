@@ -36,6 +36,16 @@ const videos: ShowVideo[] = [
     type: "youtube",
   },
   {
+    title: "JHON ALEX CASTAÑO: Movistar Arena / Ensayo bailarines",
+    url: "https://www.youtube.com/watch?v=7l284fOGdzA",
+    type: "youtube",
+  },
+  {
+    title: "FESTIVAL SUEÑOS: JBALVIN / LA ESCENA BAILARINES",
+    url: "https://www.youtube.com/watch?v=unW6AN9Qzow",
+    type: "youtube",
+  },
+  {
     title: "Beychella — Show Tributo a Beyoncé. Dirección coreográfica, artística y general",
     url: "https://www.youtube.com/watch?v=cvHRsDMz9Qw&t=226s",
     type: "youtube",
