@@ -4,19 +4,6 @@ import { notFound } from 'next/navigation'
 import { ArrowRight, Play, ExternalLink } from 'lucide-react'
 
 const SERVICIOS: Record<string, { title: string; desc: string }> = {
-  'trends-para-campanas': [
-    {
-      campaign: "Videos de Contenido",
-      reels: [],
-      youtubeVideos: [
-        { url: "https://www.youtube.com/watch?v=8qEMSynh4js", title: "BADMAN PARTY VIDEO DANCE by Sara Sierra" },
-        { url: "https://www.youtube.com/watch?v=xd9Dhk9NwZQ", title: "Basshall Session #1 choreo por SARA SIERRA" },
-        { url: "https://www.youtube.com/watch?v=XyWkd5ytmOo", title: "CERQUITA Raiser Suena Nitido Coreo por SARA SIERRA" },
-        { url: "https://www.youtube.com/watch?v=YQwcA5TolTM", title: "MOTOROLA: Activación de Marca by LA ESCENA" },
-        { url: "https://www.youtube.com/watch?v=OnK8X2RJxB8", title: "HOTLINE EXPERIENCE: campaña para lanzamiento de canción" },
-      ],
-    },
-  ],
   'reels-tiktoks': {
     title: 'Reels & TikToks',
     desc: 'Contenido dinámico y de alto impacto para redes sociales. Creamos reels y TikToks con coreografías, conceptos creativos y talento profesional para aumentar el alcance y la conexión de tu marca con su audiencia.',
