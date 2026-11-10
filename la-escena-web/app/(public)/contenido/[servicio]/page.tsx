@@ -4,12 +4,25 @@ import { notFound } from 'next/navigation'
 import { ArrowRight, Play, ExternalLink } from 'lucide-react'
 
 const SERVICIOS: Record<string, { title: string; desc: string }> = {
+  'trends-para-campanas': [
+    {
+      campaign: "Videos de Contenido",
+      reels: [],
+      youtubeVideos: [
+        { url: "https://www.youtube.com/watch?v=8qEMSynh4js", title: "BADMAN PARTY VIDEO DANCE by Sara Sierra" },
+        { url: "https://www.youtube.com/watch?v=xd9Dhk9NwZQ", title: "Basshall Session #1 choreo por SARA SIERRA" },
+        { url: "https://www.youtube.com/watch?v=XyWkd5ytmOo", title: "CERQUITA Raiser Suena Nitido Coreo por SARA SIERRA" },
+        { url: "https://www.youtube.com/watch?v=YQwcA5TolTM", title: "MOTOROLA: Activación de Marca by LA ESCENA" },
+        { url: "https://www.youtube.com/watch?v=OnK8X2RJxB8", title: "HOTLINE EXPERIENCE: campaña para lanzamiento de canción" },
+      ],
+    },
+  ],
   'reels-tiktoks': {
     title: 'Reels & TikToks',
     desc: 'Contenido dinámico y de alto impacto para redes sociales. Creamos reels y TikToks con coreografías, conceptos creativos y talento profesional para aumentar el alcance y la conexión de tu marca con su audiencia.',
   },
   'kits-de-contenido': {
-    title: 'Baile Para Tus Campañas',
+    title: 'Kits de Contenido',
     desc: 'Paquetes completos de fotografía y video para fortalecer tu presencia digital. Incluye la creación de contenido pensado para campañas, redes sociales y plataformas digitales, acompañado de una estrategia de marketing para maximizar su impacto.',
   },
   'cobertura-de-eventos': {
@@ -17,7 +30,7 @@ const SERVICIOS: Record<string, { title: string; desc: string }> = {
     desc: 'Registro audiovisual profesional para eventos, lanzamientos, activaciones, shows y producciones. Capturamos los mejores momentos para convertirlos en contenido de alto valor.',
   },
   'trends-para-campanas': {
-    title: 'Trends para Campañas',
+    title: 'Baile Para Tus Campañas',
     desc: 'Diseñamos y producimos trends para TikTok e Instagram junto a bailarines y creadores de contenido. Creamos campañas que integran la danza, el movimiento y la creatividad para potenciar el alcance y la recordación de tu marca.',
   },
 }
@@ -42,7 +55,8 @@ export async function generateMetadata({
 
 // Portafolio específico por servicio
 const PORTFOLIO_CAMPAIGNS: Record<string, { campaign: string; reels: { url: string; label: string }[]; youtubeVideos?: { url: string; title: string }[]; cta?: { label: string } }[]> = {
-  'kits-de-contenido': [
+  // kits-de-contenido sin portfolio por ahora
+  'trends-para-campanas': [
     {
       campaign: "Videos de Contenido",
       reels: [],

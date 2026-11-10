@@ -14,7 +14,7 @@ export const SERVICIOS = [
   {
     slug: "kits-de-contenido",
     icon: Film,
-    title: "Baile Para Tus Campañas",
+    title: "Kits de Contenido",
     desc: "Paquetes completos de fotografía y video para fortalecer tu presencia digital. Incluye la creación de contenido pensado para campañas, redes sociales y plataformas digitales, acompañado de una estrategia de marketing para maximizar su impacto.",
   },
   {
@@ -26,7 +26,7 @@ export const SERVICIOS = [
   {
     slug: "trends-para-campanas",
     icon: TrendingUp,
-    title: "Trends para Campañas",
+    title: "Baile Para Tus Campañas",
     desc: "Diseñamos y producimos trends para TikTok e Instagram junto a bailarines y creadores de contenido. Creamos campañas que integran la danza, el movimiento y la creatividad para potenciar el alcance y la recordación de tu marca.",
   },
 ] as const;
