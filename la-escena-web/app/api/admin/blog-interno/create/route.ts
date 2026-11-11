@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/auth"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 import { sanityWriteClient, textToBlocks } from "@/lib/sanity"
 
 function slugify(text: string): string {
@@ -24,6 +26,7 @@ async function uploadImage(file: File) {
 export async function POST(req: Request) {
   try {
     await requireAdmin()
+    const session = await getServerSession(authOptions)
 
     const formData = await req.formData()
     const title      = formData.get("title") as string
@@ -58,6 +61,7 @@ export async function POST(req: Request) {
       title: title.trim(),
       slug: { _type: "slug", current: slugVal?.trim() || slugify(title) },
       publishedAt: new Date().toISOString(),
+      authorName: (session?.user as any)?.name || (session?.user as any)?.email || "Admin",
     }
 
     if (excerpt?.trim()) doc.excerpt = excerpt.trim()

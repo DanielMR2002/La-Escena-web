@@ -65,6 +65,17 @@ export default async function NoticiaDetailPage({ params }: Props) {
             </div>
           )}
           <div className="mt-12 pt-8 border-t border-zinc-200">
+            {post.authorName && (
+              <div className="mb-6 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-zinc-200 flex items-center justify-center text-sm font-bold text-zinc-600">
+                  {post.authorName.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <p className="text-xs text-zinc-400 uppercase tracking-wider">(Autor)</p>
+                  <p className="text-sm font-medium text-zinc-800">{post.authorName}</p>
+                </div>
+              </div>
+            )}
             <Link
               href="/artista/noticias"
               className="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-foreground transition-colors"

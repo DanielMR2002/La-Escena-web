@@ -225,7 +225,7 @@ export async function getPosts() {
 }
 
 export async function getPostBySlug(slug: string) {
-  return sanityClient.fetch(
+  return sanityWriteClient.fetch(
     `*[_type == "post" && slug.current == $slug][0]{
       title,
       excerpt,
@@ -233,7 +233,8 @@ export async function getPostBySlug(slug: string) {
       category,
       body,
       mainImage,
-      bottomImage
+      bottomImage,
+      authorName
     }`,
     { slug }
   )
@@ -250,7 +251,8 @@ export async function getPostById(id: string) {
       category,
       body,
       mainImage,
-      bottomImage
+      bottomImage,
+      authorName
     }`,
     { id }
   )
@@ -274,7 +276,8 @@ export async function getInternalPosts() {
       excerpt,
       publishedAt,
       mainImage,
-      body
+      body,
+      authorName
     }
   `)
 }
@@ -290,7 +293,8 @@ export async function getInternalPostById(id: string) {
       category,
       body,
       mainImage,
-      bottomImage
+      bottomImage,
+      authorName
     }`,
     { id }
   )
@@ -328,7 +332,8 @@ export async function getPublicPosts() {
       excerpt,
       publishedAt,
       mainImage,
-      category
+      category,
+      authorName
     }
   `)
 }
