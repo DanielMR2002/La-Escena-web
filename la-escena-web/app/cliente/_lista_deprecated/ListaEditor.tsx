@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import Image from 'next/image'
-import { X, Send, Clock, CheckCircle, XCircle, Search } from 'lucide-react'
+import { X, Send, Clock, CheckCircle, XCircle, Search, PlusCircle } from 'lucide-react'
 import { urlFor } from '@/lib/sanity'
 import { formatCategoryLabel } from '@/lib/artistCategories'
 
@@ -80,6 +80,11 @@ export default function ListaEditor({ pendingList, approvedList, pendingComment,
 
   function removeArtist(id: string) {
     setEditList(prev => prev.filter(a => a.id !== id))
+  }
+
+  function addArtist(artist: CatalogArtist) {
+    if (editList.some(a => a.id === artist.id)) return
+    setEditList(prev => [...prev, { id: artist.id, name: artist.name }])
   }
 
   async function handleSave() {
@@ -210,6 +215,46 @@ export default function ListaEditor({ pendingList, approvedList, pendingComment,
               </div>
             )}
           </>
+        )}
+
+        {/* Catálogo para agregar artistas */}
+        {catalog.length > editList.length && (
+          <div className="mt-8 mb-6">
+            <h3 className="text-sm font-semibold text-zinc-700 mb-3">Agregar artistas al listado</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              {catalog
+                .filter(c => !editList.some(a => a.id === c.id))
+                .filter(c => !q || c.name.toLowerCase().includes(q))
+                .map(artist => (
+                  <div key={artist.id} className="relative bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden flex flex-col opacity-80 hover:opacity-100 transition-opacity">
+                    {artist.photo ? (
+                      <div className="relative h-36 w-full bg-zinc-100">
+                        <Image src={urlFor(artist.photo).width(320).height(220).url()} alt={artist.name} fill className="object-cover" />
+                      </div>
+                    ) : (
+                      <div className="h-36 w-full bg-zinc-100 flex items-center justify-center">
+                        <span className="font-heading text-3xl text-zinc-300">{artist.name[0]?.toUpperCase()}</span>
+                      </div>
+                    )}
+                    <div className="p-3 flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-zinc-800 truncate">{artist.name}</p>
+                        <p className="text-xs text-zinc-500 truncate">
+                          {[formatCategoryLabel(artist.category, artist.esProfesor), artist.city].filter(Boolean).join(' · ') || '—'}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => addArtist(artist)}
+                        className="shrink-0 p-1.5 text-green-600 hover:text-green-700 transition-colors"
+                        title="Agregar a la lista"
+                      >
+                        <PlusCircle size={20} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
         )}
 
         <button

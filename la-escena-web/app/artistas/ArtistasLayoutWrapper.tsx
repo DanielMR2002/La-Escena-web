@@ -13,11 +13,11 @@ export default function ArtistasLayoutWrapper({ children }: { children: React.Re
 
   if (fromPanel) {
     return (
-      <div className="min-h-screen bg-zinc-50">
-        <header className="sticky top-0 z-50 bg-white border-b border-zinc-200 px-6 py-4 flex items-center justify-between">
+      <div className="min-h-screen bg-zinc-950">
+        <header className="sticky top-0 z-50 bg-zinc-900 border-b border-zinc-800 px-6 py-4 flex items-center justify-between">
           <button
             onClick={() => router.back()}
-            className="inline-flex items-center gap-2 text-sm font-medium text-zinc-600 hover:text-zinc-900 transition-colors"
+            className="inline-flex items-center gap-2 text-sm font-medium text-zinc-300 hover:text-white transition-colors"
           >
             <ArrowLeft size={16} />
             Volver

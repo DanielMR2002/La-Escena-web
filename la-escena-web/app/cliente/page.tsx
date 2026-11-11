@@ -32,10 +32,22 @@ export default async function ClienteDashboard() {
     redirect("/login")
   }
 
-  const accesses = await prisma.clientArtistAccess.findMany({
-    where: { clientId: session.user.id },
-    include: { artist: { include: { artistProfile: true } } },
-  })
+  const clientId = session.user.id
+
+  const [accesses, pendingShortlist, approvedShortlist] = await Promise.all([
+    prisma.clientArtistAccess.findMany({
+      where: { clientId },
+      include: { artist: { include: { artistProfile: true } } },
+    }),
+    prisma.clientShortlist.findFirst({
+      where: { clientId, status: "PENDING" },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.clientShortlist.findFirst({
+      where: { clientId, status: "APPROVED" },
+      orderBy: { createdAt: "desc" },
+    }),
+  ])
 
   const sanityIds = accesses
     .map(a => a.artist.artistProfile?.sanityId)
@@ -77,6 +89,11 @@ export default async function ClienteDashboard() {
     }
   })
 
+  // Artistas ya en la lista aprobada (pre-seleccionados)
+  const approvedIds = Array.isArray(approvedShortlist?.artistIds)
+    ? (approvedShortlist!.artistIds as string[])
+    : []
+
   return (
     <div>
       <div className="mb-8">
@@ -90,7 +107,12 @@ export default async function ClienteDashboard() {
           <p className="text-sm mt-2">Contacta a La Escena para gestionar tu acceso.</p>
         </div>
       ) : (
-        <ClienteDashboardClient artists={artists} />
+        <ClienteDashboardClient
+          artists={artists}
+          isPending={!!pendingShortlist}
+          approvedIds={approvedIds}
+          pendingComment={pendingShortlist?.adminComment ?? null}
+        />
       )}
     </div>
   )
