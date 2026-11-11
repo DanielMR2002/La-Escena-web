@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowRight, Play, ExternalLink } from 'lucide-react'
+import YoutubeLazyPlayer from './YoutubeLazyPlayer'
 
 const SERVICIOS: Record<string, { title: string; desc: string }> = {
   'reels-tiktoks': {
@@ -136,28 +137,14 @@ export default async function ServicioContenidoPage({
                   </p>
                   {camp.youtubeVideos && camp.youtubeVideos.length > 0 ? (
                     <div className={camp.isShorts ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4" : "grid md:grid-cols-3 gap-6"}>
-                      {camp.youtubeVideos.map((v) => {
-                        const shortIdMatch = v.url.match(/\/shorts\/([^?&]+)/)
-                        const regularIdMatch = v.url.match(/[?&]v=([^&]+)/)
-                        const ytId = shortIdMatch ? shortIdMatch[1] : (regularIdMatch ? regularIdMatch[1] : null)
-                        const embedUrl = camp.isShorts
-                          ? `https://www.youtube.com/embed/${ytId}`
-                          : `https://www.youtube.com/embed/${ytId}`
-                        return (
-                          <div key={v.url} className="space-y-2">
-                            <div className={`relative rounded-lg overflow-hidden bg-zinc-900 ${camp.isShorts ? "aspect-[9/16]" : "aspect-video"}`}>
-                              <iframe
-                                src={embedUrl}
-                                title={v.title || "Video"}
-                                loading="lazy"
-                                allowFullScreen
-                                className="absolute inset-0 w-full h-full"
-                              />
-                            </div>
-                            {v.title && <h3 className="font-heading text-base tracking-wide text-primary-foreground text-center">{v.title}</h3>}
-                          </div>
-                        )
-                      })}
+                      {camp.youtubeVideos.map((v) => (
+                        <YoutubeLazyPlayer
+                          key={v.url}
+                          url={v.url}
+                          title={v.title || undefined}
+                          isShort={camp.isShorts}
+                        />
+                      ))}
                     </div>
                   ) : camp.reels.length > 0 ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
