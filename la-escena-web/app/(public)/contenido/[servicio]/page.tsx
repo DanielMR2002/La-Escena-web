@@ -41,8 +41,30 @@ export async function generateMetadata({
 }
 
 // Portafolio específico por servicio
-const PORTFOLIO_CAMPAIGNS: Record<string, { campaign: string; reels: { url: string; label: string }[]; youtubeVideos?: { url: string; title: string }[]; cta?: { label: string } }[]> = {
-  // kits-de-contenido sin portfolio por ahora
+const PORTFOLIO_CAMPAIGNS: Record<string, { campaign: string; reels: { url: string; label: string }[]; youtubeVideos?: { url: string; title: string }[]; isShorts?: boolean; cta?: { label: string } }[]> = {
+  'kits-de-contenido': [
+    {
+      campaign: "Kits de Contenido",
+      reels: [],
+      youtubeVideos: [
+        { url: "https://www.youtube.com/shorts/AET84dH6C_w", title: "" },
+        { url: "https://www.youtube.com/shorts/DIBSYPyMbNI", title: "" },
+        { url: "https://www.youtube.com/shorts/uhUS7xusVjY", title: "" },
+        { url: "https://www.youtube.com/shorts/maj4g8wq5Ps", title: "" },
+        { url: "https://www.youtube.com/shorts/vk2sN2KjMks", title: "" },
+        { url: "https://www.youtube.com/shorts/CwdvFTVWO1g", title: "" },
+        { url: "https://www.youtube.com/shorts/GaDZ5jLlym4", title: "" },
+        { url: "https://www.youtube.com/shorts/a9py4Mbo0P0", title: "" },
+        { url: "https://www.youtube.com/shorts/xIy7JHdRXXE", title: "" },
+        { url: "https://www.youtube.com/shorts/0d_5l--HIyQ", title: "" },
+        { url: "https://www.youtube.com/shorts/tRPXj-uv5oY", title: "" },
+        { url: "https://www.youtube.com/shorts/n1dgb6WohSU", title: "" },
+        { url: "https://www.youtube.com/shorts/jv9gxAX1r5Y", title: "" },
+        { url: "https://www.youtube.com/watch?v=CGpG3MoPh2A", title: "" },
+      ],
+      isShorts: true,
+    },
+  ],
   'trends-para-campanas': [
     {
       campaign: "Videos de Contenido",
@@ -113,22 +135,26 @@ export default async function ServicioContenidoPage({
                     {camp.campaign}
                   </p>
                   {camp.youtubeVideos && camp.youtubeVideos.length > 0 ? (
-                    <div className="grid md:grid-cols-3 gap-6">
+                    <div className={camp.isShorts ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4" : "grid md:grid-cols-3 gap-6"}>
                       {camp.youtubeVideos.map((v) => {
-                        const idMatch = v.url.match(/[?&]v=([^&]+)/)
-                        const ytId = idMatch ? idMatch[1] : null
+                        const shortIdMatch = v.url.match(/\/shorts\/([^?&]+)/)
+                        const regularIdMatch = v.url.match(/[?&]v=([^&]+)/)
+                        const ytId = shortIdMatch ? shortIdMatch[1] : (regularIdMatch ? regularIdMatch[1] : null)
+                        const embedUrl = camp.isShorts
+                          ? `https://www.youtube.com/embed/${ytId}`
+                          : `https://www.youtube.com/embed/${ytId}`
                         return (
-                          <div key={v.url} className="space-y-3">
-                            <div className="relative aspect-video rounded-lg overflow-hidden bg-zinc-900">
+                          <div key={v.url} className="space-y-2">
+                            <div className={`relative rounded-lg overflow-hidden bg-zinc-900 ${camp.isShorts ? "aspect-[9/16]" : "aspect-video"}`}>
                               <iframe
-                                src={`https://www.youtube.com/embed/${ytId}`}
-                                title={v.title}
+                                src={embedUrl}
+                                title={v.title || "Video"}
                                 loading="lazy"
                                 allowFullScreen
                                 className="absolute inset-0 w-full h-full"
                               />
                             </div>
-                            <h3 className="font-heading text-base tracking-wide text-primary-foreground text-center">{v.title}</h3>
+                            {v.title && <h3 className="font-heading text-base tracking-wide text-primary-foreground text-center">{v.title}</h3>}
                           </div>
                         )
                       })}
