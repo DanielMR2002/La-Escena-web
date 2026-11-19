@@ -21,31 +21,40 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "El archivo no puede superar 2 GB." }, { status: 400 })
     }
 
-    // Request a one-time direct upload URL from Cloudflare Stream
+    if (!ACCOUNT_ID || !API_TOKEN) {
+      return NextResponse.json({ error: "Configuración de Cloudflare incompleta." }, { status: 500 })
+    }
+
+    // TUS endpoint — no requiresignedurls so the video is publicly playable
     const cfRes = await fetch(
-      `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/stream/direct_upload`,
+      `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/stream?direct_user=true`,
       {
         method: "POST",
         headers: {
           Authorization: `Bearer ${API_TOKEN}`,
-          "Content-Type": "application/json",
+          "Tus-Resumable": "1.0.0",
+          "Upload-Length": String(fileSize),
+          "Upload-Metadata": `name ${Buffer.from(fileName).toString("base64")}`,
         },
-        body: JSON.stringify({
-          maxDurationSeconds: 3600,
-          expiry: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
-          meta: { name: fileName },
-        }),
       }
     )
 
     if (!cfRes.ok) {
       const err = await cfRes.text()
-      console.error("Cloudflare direct_upload error:", err)
-      return NextResponse.json({ error: "No se pudo generar la URL de subida." }, { status: 500 })
+      console.error("Cloudflare TUS init error:", cfRes.status, err)
+      return NextResponse.json(
+        { error: `Cloudflare error ${cfRes.status}: ${err}` },
+        { status: 500 }
+      )
     }
 
-    const cfData = await cfRes.json()
-    const { uid, uploadURL } = cfData.result
+    const uploadURL = cfRes.headers.get("location")
+    const uid = cfRes.headers.get("stream-media-id")
+
+    if (!uploadURL || !uid) {
+      console.error("Missing headers:", Object.fromEntries(cfRes.headers.entries()))
+      return NextResponse.json({ error: "No se recibió URL de subida de Cloudflare." }, { status: 500 })
+    }
 
     return NextResponse.json({ uid, uploadURL })
 
@@ -54,6 +63,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: error.status })
     }
     console.error("ERROR cloudflare-upload-url:", error)
-    return NextResponse.json({ error: "Error interno del servidor." }, { status: 500 })
+    return NextResponse.json({ error: `Error interno: ${error instanceof Error ? error.message : String(error)}` }, { status: 500 })
   }
 }

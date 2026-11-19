@@ -10,11 +10,17 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'img.youtube.com'
+      },
+      {
+        protocol: 'https',
+        hostname: 'videodelivery.net'
+      },
+      {
+        protocol: 'https',
+        hostname: 'imagedelivery.net'
       }
     ]
   }
 };
 
 export default nextConfig;
-
-

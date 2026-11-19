@@ -752,8 +752,13 @@ export default function ArtistPageClient({ artist }: { artist: any }) {
             <div className="grid md:grid-cols-2 gap-6">
               {videos.map((video: any, i: number) => {
                 const thumb = getThumbnail(video.url)
+                const isCF = video.url.includes("cloudflarestream.com")
                 const isBlob = !youtubeId(video.url)
                 if (isBlob) {
+                  const cfUid = isCF ? video.url.split("/").pop() : null
+                  const cfThumb = cfUid
+                    ? `https://videodelivery.net/${cfUid}/thumbnails/thumbnail.jpg?time=2s&height=400`
+                    : null
                   return (
                     <motion.button
                       key={video._key ?? i}
@@ -763,6 +768,9 @@ export default function ArtistPageClient({ artist }: { artist: any }) {
                       variants={fadeUp} custom={i}
                       className="group relative aspect-video rounded-lg overflow-hidden cursor-pointer block w-full"
                     >
+                      {isCF && cfThumb ? (
+                        <Image src={cfThumb} alt={video.title ?? "Video"} fill className="object-cover transition-transform duration-500 group-hover:scale-105" />
+                      ) : (
                       <video
                         src={video.url}
                         preload="metadata"
@@ -770,6 +778,7 @@ export default function ArtistPageClient({ artist }: { artist: any }) {
                         playsInline
                         className="w-full h-full object-cover"
                       />
+                      )}
                       <div className="absolute inset-0 bg-foreground/50 group-hover:bg-foreground/30 transition-colors" />
                       <div className="absolute inset-0 flex items-center justify-center">
                         <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center group-hover:scale-110 transition-transform shadow-2xl">
@@ -905,13 +914,23 @@ export default function ArtistPageClient({ artist }: { artist: any }) {
               >
                 <X size={18} /> Cerrar
               </button>
-              <video
-                src={videoModal.url}
-                controls
-                autoPlay
-                className="w-full rounded-lg shadow-2xl"
-                style={{ maxHeight: '80vh' }}
-              />
+              {videoModal.url.includes("cloudflarestream.com") ? (
+                <iframe
+                  src={`https://iframe.cloudflarestream.com/${videoModal.url.split("/").pop()}?autoplay=false`}
+                  className="w-full rounded-lg shadow-2xl"
+                  style={{ aspectRatio: '16/9' }}
+                  allow="accelerometer; gyroscope; encrypted-media; picture-in-picture; fullscreen"
+                  allowFullScreen
+                />
+              ) : (
+                <video
+                  src={videoModal.url}
+                  controls
+                  autoPlay
+                  className="w-full rounded-lg shadow-2xl"
+                  style={{ maxHeight: '80vh' }}
+                />
+              )}
               {videoModal.title && (
                 <p className="mt-3 text-white/80 text-sm text-center">{videoModal.title}</p>
               )}

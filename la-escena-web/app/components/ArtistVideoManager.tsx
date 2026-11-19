@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
+import * as tus from "tus-js-client"
 
 type SanityVideo = { _key: string; url: string; title?: string }
 
@@ -75,36 +76,34 @@ export default function ArtistVideoManager({ sanityId, videos, pendingVideos }: 
 
       const { uid, uploadURL } = await urlRes.json()
 
-      // Step 2: Upload directly to Cloudflare Stream from the browser
-      // This completely bypasses Vercel — no 60s timeout, no size limit from our side
+      // Step 2: Upload directly to Cloudflare Stream using TUS protocol
+      // TUS uploads in chunks — shows real progress, resumes if connection drops
       setUploadStage('uploading')
 
       await new Promise<void>((resolve, reject) => {
-        const xhr = new XMLHttpRequest()
-
-        xhr.upload.addEventListener("progress", (event) => {
-          if (event.lengthComputable) {
-            const pct = Math.round((event.loaded / event.total) * 100)
+        const upload = new tus.Upload(file, {
+          endpoint: uploadURL,
+          retryDelays: [0, 3000, 5000, 10000],
+          chunkSize: 50 * 1024 * 1024, // 50 MB chunks
+          metadata: {
+            filename: file.name,
+            filetype: file.type,
+          },
+          onProgress(bytesUploaded, bytesTotal) {
+            const pct = Math.round((bytesUploaded / bytesTotal) * 100)
             setUploadProgress(pct)
-          }
-        })
-
-        xhr.addEventListener("load", () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
+          },
+          onSuccess() {
             resolve()
-          } else {
-            reject(new Error(`Cloudflare respondió con error ${xhr.status}`))
-          }
+          },
+          onError(err) {
+            reject(new Error("Error al subir el video: " + err.message))
+          },
         })
-
-        xhr.addEventListener("error", () => reject(new Error("Error de red al subir el video.")))
-        xhr.addEventListener("abort", () => reject(new Error("Subida cancelada.")))
-
-        const form = new FormData()
-        form.append("file", file)
-        xhr.open("POST", uploadURL)
-        xhr.send(form)
+        upload.start()
       })
+
+      setUploadProgress(99)
 
       // Step 3: Save the Cloudflare Stream URL to Sanity
       setUploadStage('saving')
@@ -187,7 +186,9 @@ export default function ArtistVideoManager({ sanityId, videos, pendingVideos }: 
 
   const stageLabel: Record<string, string> = {
     preparing: "Preparando subida...",
-    uploading: `Subiendo video... ${uploadProgress}%`,
+    uploading: uploadProgress < 95
+      ? `Subiendo video... ${uploadProgress}%`
+      : "Procesando video...",
     saving:    "Guardando video...",
   }
 
