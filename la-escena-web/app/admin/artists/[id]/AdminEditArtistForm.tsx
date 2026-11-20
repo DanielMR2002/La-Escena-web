@@ -24,7 +24,7 @@ type TrayectoriaItem = {
   edad: string
   estatura: string
 }
-type PruebaItem = { url: string; title: string; fileType: string }
+type PruebaItem = { _key?: string; url: string; title: string; fileType: string }
 
 type ArtistData = {
   name?:               string
@@ -209,6 +209,8 @@ export default function AdminEditArtistForm({ sanityId, initialData, hasVideo }:
   const [pruebaUploading, setPruebaUploading] = useState(false)
   const [pruebaUploadError, setPruebaUploadError] = useState<string | null>(null)
   const pruebasAprobadas: PruebaItem[] = initialData.pruebasTrabajoAprobadas ?? []
+  const [deletingPruebaKey, setDeletingPruebaKey] = useState<string | null>(null)
+  const [deletedPruebaKeys, setDeletedPruebaKeys] = useState<Set<string>>(new Set())
 
   async function handlePruebaUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -688,12 +690,43 @@ export default function AdminEditArtistForm({ sanityId, initialData, hasVideo }:
                 {pruebasAprobadas.length > 0 && (
                   <div className="mt-3 space-y-1">
                     <p className="text-xs font-semibold text-green-700 mb-1">✓ Aprobadas:</p>
-                    {pruebasAprobadas.map((p, i) => (
-                      <a key={i} href={p.url} target="_blank" rel="noopener noreferrer"
-                         className="block px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg text-xs text-green-700 underline hover:text-green-900">
-                        {p.title}
-                      </a>
-                    ))}
+                    {pruebasAprobadas.map((p, i) => {
+                      const key = p._key ?? String(i)
+                      if (deletedPruebaKeys.has(key)) return null
+                      const isDeleting = deletingPruebaKey === key
+                      return (
+                        <div key={key} className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-1.5">
+                          <a href={p.url} target="_blank" rel="noopener noreferrer"
+                             className="flex-1 text-xs text-green-700 underline hover:text-green-900 truncate">
+                            {p.title || p.url}
+                          </a>
+                          <button
+                            type="button"
+                            disabled={isDeleting}
+                            onClick={async () => {
+                              if (!confirm("¿Eliminar esta prueba de trabajo directamente?")) return
+                              setDeletingPruebaKey(key)
+                              try {
+                                const res = await fetch("/api/admin/artists/prueba-trabajo/delete", {
+                                  method: "DELETE",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ sanityId, pruebaKey: key }),
+                                })
+                                if (!res.ok) throw new Error("Error")
+                                setDeletedPruebaKeys(prev => new Set([...prev, key]))
+                              } catch {
+                                alert("Error al eliminar")
+                              } finally {
+                                setDeletingPruebaKey(null)
+                              }
+                            }}
+                            className="text-[10px] text-red-500 hover:text-red-700 disabled:opacity-40 shrink-0"
+                          >
+                            {isDeleting ? "..." : "✕"}
+                          </button>
+                        </div>
+                      )
+                    })}
                   </div>
                 )}
               </div>

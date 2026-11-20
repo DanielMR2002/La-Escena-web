@@ -94,6 +94,47 @@ export default function RevisionChanges({ data }: { data: Record<string, any> })
               </dd>
             </div>
           )}
+
+          {Array.isArray(data?.deletePruebaKeys) && data.deletePruebaKeys.length > 0 && (
+            <div>
+              <dt className="text-xs font-medium text-zinc-400 uppercase tracking-wide mb-1">🗑 Solicita eliminar pruebas de trabajo</dt>
+              <dd className="space-y-1">
+                {data.deletePruebaKeys.map((key: string) => (
+                  <div key={key} className="text-sm bg-red-50 border border-red-200 rounded px-2 py-1 font-mono text-red-700">
+                    key: {key}
+                  </div>
+                ))}
+              </dd>
+            </div>
+          )}
+
+          {Array.isArray(data?.pruebasTrabajo) && data.pruebasTrabajo.length > 0 && (
+            <div>
+              <dt className="text-xs font-medium text-zinc-400 uppercase tracking-wide mb-1">📹 Nuevas pruebas de trabajo</dt>
+              <dd className="grid grid-cols-2 gap-2">
+                {data.pruebasTrabajo.map((p: any, i: number) => {
+                  const isCFVideo = p.fileType?.startsWith("video") && p.url?.includes("cloudflarestream.com")
+                  const cfUid = isCFVideo ? p.url?.split("/").pop() : null
+                  return (
+                    <a key={p._key ?? i} href={p.url} target="_blank" rel="noopener noreferrer"
+                      className="block rounded overflow-hidden border border-zinc-200 bg-zinc-50">
+                      <div className="aspect-video relative bg-zinc-200">
+                        {isCFVideo ? (
+                          <img src={`https://videodelivery.net/${cfUid}/thumbnails/thumbnail.jpg?time=2s&height=160`}
+                            alt={p.title ?? "Video"} className="w-full h-full object-cover" />
+                        ) : p.fileType?.startsWith("image") ? (
+                          <img src={p.url} alt={p.title ?? "Imagen"} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-zinc-400">▶</div>
+                        )}
+                      </div>
+                      {p.title && <p className="text-[10px] text-zinc-500 truncate px-1 py-0.5">{p.title}</p>}
+                    </a>
+                  )
+                })}
+              </dd>
+            </div>
+          )}
         </dl>
       )}
     </div>

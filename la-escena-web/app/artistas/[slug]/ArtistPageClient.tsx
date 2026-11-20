@@ -839,6 +839,8 @@ export default function ArtistPageClient({ artist }: { artist: any }) {
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {pruebasAprobadas.map((prueba: any, i: number) => {
                 const isVideo = prueba.fileType?.startsWith('video')
+                const isCFVideo = isVideo && prueba.url.includes("cloudflarestream.com")
+                const cfUid = isCFVideo ? prueba.url.split("/").pop() : null
                 return isVideo ? (
                   <button
                     key={prueba._key ?? i}
@@ -847,13 +849,22 @@ export default function ArtistPageClient({ artist }: { artist: any }) {
                     className="group relative block w-full rounded-lg overflow-hidden bg-muted border border-border hover:border-primary transition-colors text-left"
                   >
                     <div className="aspect-video relative bg-zinc-900 overflow-hidden">
-                      <video
-                        src={prueba.url}
-                        preload="metadata"
-                        muted
-                        playsInline
-                        className="w-full h-full object-cover"
-                      />
+                      {isCFVideo ? (
+                        <Image
+                          src={`https://videodelivery.net/${cfUid}/thumbnails/thumbnail.jpg?time=2s&height=400`}
+                          alt={prueba.title ?? "Video"}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <video
+                          src={prueba.url}
+                          preload="metadata"
+                          muted
+                          playsInline
+                          className="w-full h-full object-cover"
+                        />
+                      )}
                       <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors flex items-center justify-center">
                         <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                           <Play size={22} className="text-primary-foreground ml-1" fill="currentColor" />

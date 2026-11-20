@@ -60,7 +60,8 @@ export default async function EditarArtistPage() {
         photos[]{ _key, asset, photoCategory },
         "videos": videos[]{ _key, url, title },
         pendingPhotos[]{ _key, asset, photoCategory },
-        "pendingVideos": pendingVideos[]{ _key, url, title }
+        "pendingVideos": pendingVideos[]{ _key, url, title },
+        "pruebasTrabajoAprobadas": pruebasTrabajoAprobadas[]{ _key, url, title, fileType }
       }`,
       { id: profile.sanityId }
     )

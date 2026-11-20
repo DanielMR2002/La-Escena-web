@@ -100,7 +100,7 @@ export async function rejectRevision(
   if (profile.sanityId) {
     await sanityWriteClient
       .patch(profile.sanityId)
-      .unset(["pendingPhotos", "pendingVideos"])
+      .unset(["pendingPhotos", "pendingVideos", "pruebasTrabajo"])
       .commit()
   }
 

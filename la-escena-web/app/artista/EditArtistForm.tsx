@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import * as tus from "tus-js-client"
 import {
   COMPLEXION_OPTIONS,
   EYE_COLOR_OPTIONS,
@@ -10,7 +11,6 @@ import {
   SKILL_OPTIONS,
   AGENCY_PROFILE_OPTIONS,
   TIPOS_CLASE_OPTIONS,
-  STYLE_OPTIONS,
   TIPO_PERFIL_OPTIONS,
   DANCE_STYLE_GROUPS,
 } from "@/lib/artistProfileOptions"
@@ -38,7 +38,7 @@ type ArtistFormState = {
   youtube: string
 }
 
-type PruebaItem = { url: string; title: string; fileType: string }
+type PruebaItem = { _key?: string; url: string; title: string; fileType: string }
 
 function splitSkills(skills: any): { preset: string[]; customInput: string } {
   const list: string[] = Array.isArray(skills) ? skills : []
@@ -183,25 +183,94 @@ export default function EditArtistForm({
   // Pruebas de trabajo
   const [pruebasSubidas, setPruebasSubidas] = useState<PruebaItem[]>([])
   const [pruebaUploading, setPruebaUploading] = useState(false)
+  const [pruebaUploadProgress, setPruebaUploadProgress] = useState(0)
+  const [pruebaUploadStage, setPruebaUploadStage] = useState<'idle'|'preparing'|'uploading'>('idle')
   const [pruebaUploadError, setPruebaUploadError] = useState<string | null>(null)
+  const [deletingPruebaKey, setDeletingPruebaKey] = useState<string | null>(null)
+  const [pendingDeleteKeys, setPendingDeleteKeys] = useState<Set<string>>(new Set())
   const pruebasAprobadas: PruebaItem[] = initialData?.pruebasTrabajoAprobadas ?? []
+
+  async function handleRequestDeletePrueba(pruebaKey: string) {
+    if (!pruebaKey) return
+    setDeletingPruebaKey(pruebaKey)
+    try {
+      const res = await fetch("/api/artist/prueba-trabajo/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ artistId, pruebaKey }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? "Error")
+      setPendingDeleteKeys(prev => new Set([...prev, pruebaKey]))
+    } catch (err: any) {
+      console.error(err)
+      alert("Error al solicitar eliminación: " + (err.message ?? ""))
+    } finally {
+      setDeletingPruebaKey(null)
+    }
+  }
 
   async function handlePruebaUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
     setPruebaUploadError(null)
     setPruebaUploading(true)
-    const fd = new FormData()
-    fd.append("file", file)
-    const res = await fetch("/api/artist/prueba-trabajo/upload", { method: "POST", body: fd })
-    if (res.ok) {
-      const { url, name, type } = await res.json()
-      setPruebasSubidas((prev) => [...prev, { url, title: name, fileType: type }])
-    } else {
-      const { error } = await res.json().catch(() => ({ error: "Error al subir el archivo." }))
-      setPruebaUploadError(error ?? "Error al subir el archivo.")
+    setPruebaUploadProgress(0)
+    const isVideo = file.type.startsWith("video/")
+    try {
+      if (isVideo) {
+        // Videos → Cloudflare Stream via TUS (bypasses Vercel timeout)
+        setPruebaUploadStage('preparing')
+        const urlRes = await fetch("/api/artist/video/cloudflare-upload-url", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fileName: file.name, fileSize: file.size }),
+        })
+        if (!urlRes.ok) {
+          const d = await urlRes.json().catch(() => ({ error: "Error al preparar la subida." }))
+          setPruebaUploadError(d.error ?? "Error al preparar la subida.")
+          setPruebaUploading(false)
+          setPruebaUploadStage('idle')
+          e.target.value = ""
+          return
+        }
+        const { uid, uploadURL } = await urlRes.json()
+        setPruebaUploadStage('uploading')
+        await new Promise<void>((resolve, reject) => {
+          const upload = new tus.Upload(file, {
+            endpoint: uploadURL,
+            retryDelays: [0, 3000, 5000, 10000],
+            chunkSize: 50 * 1024 * 1024,
+            metadata: { filename: file.name, filetype: file.type },
+            onProgress(bytesUploaded, bytesTotal) {
+              setPruebaUploadProgress(Math.round((bytesUploaded / bytesTotal) * 100))
+            },
+            onSuccess() { resolve() },
+            onError(err) { reject(new Error("Error al subir el video: " + err.message)) },
+          })
+          upload.start()
+        })
+        const streamUrl = `https://watch.cloudflarestream.com/${uid}`
+        setPruebasSubidas((prev) => [...prev, { url: streamUrl, title: file.name, fileType: file.type }])
+      } else {
+        // Imágenes → Vercel Blob (sin cambios)
+        setPruebaUploadStage('uploading')
+        const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_")
+        const { upload: blobUpload } = await import("@vercel/blob/client")
+        const blob = await blobUpload(
+          `pruebas-trabajo/${Date.now()}-${safeName}`,
+          file,
+          { access: "public", handleUploadUrl: "/api/artist/prueba-trabajo/upload-url" }
+        )
+        setPruebasSubidas((prev) => [...prev, { url: blob.url, title: file.name, fileType: file.type }])
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : (typeof err === "string" ? err : JSON.stringify(err))
+      setPruebaUploadError(msg)
     }
     setPruebaUploading(false)
+    setPruebaUploadStage('idle')
+    setPruebaUploadProgress(0)
     e.target.value = ""
   }
 
@@ -610,18 +679,37 @@ export default function EditArtistForm({
               </label>
               <p className="text-xs text-amber-300/80 mb-3">
                 Sube imágenes o videos de tu trabajo coreográfico. Serán revisados por el equipo antes de publicarse.
-                Formatos: jpg, png, mp4, mov · Máx. 100 MB por archivo.
+                Imágenes: jpg, png, webp · Máx. 100 MB · Videos: mp4, mov, avi, webm · Máx. 2 GB
               </p>
 
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/quicktime,video/x-msvideo,video/webm"
-                onChange={handlePruebaUpload}
-                disabled={pruebaUploading}
-                className="text-sm text-zinc-300 file:mr-3 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-amber-800 file:text-amber-100 hover:file:bg-amber-700 disabled:opacity-50"
-              />
-              {pruebaUploading && (
-                <p className="mt-2 text-xs text-zinc-400">Subiendo...</p>
+              {pruebaUploading ? (
+                <div className="space-y-2 mt-1">
+                  <div className="flex items-center gap-2 text-xs text-amber-300">
+                    <svg className="animate-spin h-3 w-3 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                    </svg>
+                    <span>
+                      {pruebaUploadStage === 'preparing' && "Preparando subida..."}
+                      {pruebaUploadStage === 'uploading' && `Subiendo... ${pruebaUploadProgress}%`}
+                    </span>
+                  </div>
+                  {pruebaUploadStage === 'uploading' && (
+                    <div className="w-full bg-amber-950 rounded-full h-1.5">
+                      <div
+                        className="bg-amber-400 h-1.5 rounded-full transition-all duration-300"
+                        style={{ width: `${pruebaUploadProgress}%` }}
+                      />
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/quicktime,video/x-msvideo,video/webm"
+                  onChange={handlePruebaUpload}
+                  className="text-sm text-zinc-300 file:mr-3 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-amber-800 file:text-amber-100 hover:file:bg-amber-700"
+                />
               )}
               {pruebaUploadError && (
                 <p className="mt-2 text-xs text-red-400">{pruebaUploadError}</p>
@@ -646,21 +734,71 @@ export default function EditArtistForm({
               )}
 
               {pruebasAprobadas.length > 0 && (
-                <div className="mt-4 space-y-1">
-                  <p className="text-xs font-semibold text-green-400 mb-1">✓ Aprobadas:</p>
-                  {pruebasAprobadas.map((p, i) => (
-                    <div key={i} className="px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-xs">
-                      <a href={p.url} target="_blank" rel="noopener noreferrer" className="text-green-400 hover:text-green-300 underline transition-colors">
-                        {p.title}
-                      </a>
-                    </div>
-                  ))}
+                <div className="mt-4">
+                  <p className="text-xs font-semibold text-green-400 mb-2">✓ Publicadas en tu perfil:</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {pruebasAprobadas.map((p, i) => {
+                      const isCFVideo = p.fileType?.startsWith("video") && p.url.includes("cloudflarestream.com")
+                      const cfUid = isCFVideo ? p.url.split("/").pop() : null
+                      const key = p._key ?? String(i)
+                      const isPendingDelete = pendingDeleteKeys.has(key)
+                      const isDeleting = deletingPruebaKey === key
+                      return (
+                        <div
+                          key={key}
+                          className={`relative group rounded-lg overflow-hidden border bg-zinc-900 ${isPendingDelete ? "border-orange-700 opacity-60" : "border-green-800"}`}
+                        >
+                          <a
+                            href={isCFVideo ? `https://iframe.cloudflarestream.com/${cfUid}` : p.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block"
+                          >
+                            <div className="aspect-video relative bg-zinc-800">
+                              {isCFVideo ? (
+                                <img
+                                  src={`https://videodelivery.net/${cfUid}/thumbnails/thumbnail.jpg?time=2s&height=200`}
+                                  alt={p.title ?? "Video"}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : p.fileType?.startsWith("image") ? (
+                                <img src={p.url} alt={p.title ?? "Imagen"} className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-zinc-500 text-2xl">▶</div>
+                              )}
+                              <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                                {isCFVideo && <div className="w-8 h-8 rounded-full bg-primary/80 flex items-center justify-center"><span className="text-white text-xs ml-0.5">▶</span></div>}
+                              </div>
+                            </div>
+                            {p.title && <p className="text-[10px] text-green-400 truncate px-2 py-1">{p.title}</p>}
+                          </a>
+                          {isPendingDelete ? (
+                            <p className="text-[10px] text-orange-400 text-center px-2 py-1">⏳ Eliminación en revisión</p>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (confirm("¿Solicitar eliminar esta prueba de trabajo? Un admin deberá aprobar la solicitud.")) {
+                                  handleRequestDeletePrueba(key)
+                                }
+                              }}
+                              disabled={isDeleting}
+                              className="w-full text-[10px] text-red-400 hover:text-red-300 hover:bg-red-900/20 transition-colors px-2 py-1 text-center disabled:opacity-50"
+                            >
+                              {isDeleting ? "Enviando..." : "✕ Solicitar eliminación"}
+                            </button>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
               )}
             </div>
           )}
         </div>
       </div>
+
       {/* Card 3 — Estilos de baile */}
       <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
         <SectionHeader n={3} title="Estilos de baile" />
@@ -697,6 +835,7 @@ export default function EditArtistForm({
           ))}
         </div>
       </div>
+
       {/* Card 4 — Sobre ti */}
       <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
         <SectionHeader n={4} title="Sobre ti" />
@@ -716,7 +855,7 @@ export default function EditArtistForm({
               className={inputCls}
             />
             <p className={helperCls}>
-              Etiquetas con las que quieres que te identifiquen. Ej: #coreógrafo, #dancehall, #versatil, #freestyle
+              Etiquetas que describen tu estilo, separadas por coma. Ej: #salsa, #contemporáneo
             </p>
           </div>
         </div>

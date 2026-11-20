@@ -49,34 +49,75 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Artist profile not found" }, { status: 404 })
     }
 
-    // Sync a Sanity solo si el artista ya está conectado
-    if (profile.sanityId) {
-      const { hasPendingMedia, ...sanityData } = (revision.data ?? {}) as Record<string, any>
+    // Sync a Sanity — si no tiene sanityId, crear el documento primero
+    let sanityId = profile.sanityId
 
-      const current = await sanityFreshClient.fetch(
-        `*[_type == "artist" && _id == $id][0]{ photos, pendingPhotos, videos, pendingVideos }`,
-        { id: profile.sanityId }
-      )
+    const { hasPendingMedia, pruebasTrabajo: pruebasEnRevision, deletePruebaKeys, ...sanityData } = (revision.data ?? {}) as Record<string, any>
 
-      const mergedPhotos = mergePendingPhotos(current?.photos ?? [], current?.pendingPhotos ?? [])
-      const mergedVideos = [...(current?.videos ?? []), ...(current?.pendingVideos ?? [])]
+    if (!sanityId) {
+      // Crear documento en Sanity usando los datos de la revisión
+      const slug = (sanityData.name ?? "artista")
+        .toLowerCase()
+        .normalize("NFD").replace(/[̀-ͯ]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "") + "-" + Date.now()
 
-      await sanityWriteClient
-        .patch(profile.sanityId)
-        .set({
-          ...sanityData,
-          photos: mergedPhotos,
-          videos: mergedVideos,
-        })
-        .unset(["pendingPhotos", "pendingVideos"])
-        .commit()
+      const newDoc = await sanityWriteClient.create({
+        _type: "artist",
+        name: sanityData.name ?? "",
+        slug: { _type: "slug", current: slug },
+        photos: [],
+        videos: [],
+        category: sanityData.category ?? "bailarin",
+        styles: sanityData.styles ?? [],
+        description: sanityData.description ?? "",
+        experience: sanityData.experience ?? 0,
+        city: sanityData.city ?? "",
+        age: sanityData.age ?? null,
+        height: sanityData.height ?? null,
+        hashtags: sanityData.hashtags ?? [],
+        artistAvailability: sanityData.artistAvailability ?? true,
+        visible: true,
+      })
+
+      sanityId = newDoc._id
+      await prisma.artistProfile.update({
+        where: { id: revision.artistId },
+        data: { sanityId },
+      })
     }
+
+    const current = await sanityFreshClient.fetch(
+      `*[_type == "artist" && _id == $id][0]{ photos, pendingPhotos, videos, pendingVideos, pruebasTrabajoAprobadas }`,
+      { id: sanityId }
+    )
+
+    const mergedPhotos = mergePendingPhotos(current?.photos ?? [], current?.pendingPhotos ?? [])
+    const mergedVideos = [...(current?.videos ?? []), ...(current?.pendingVideos ?? [])]
+    const pruebasNuevas = Array.isArray(pruebasEnRevision) ? pruebasEnRevision : []
+    const keysToDelete = Array.isArray(deletePruebaKeys) ? deletePruebaKeys : []
+    const basePruebas = (current?.pruebasTrabajoAprobadas ?? []).filter(
+      (p: any) => !keysToDelete.includes(p._key)
+    )
+    const mergedPruebas = [...basePruebas, ...pruebasNuevas]
+
+    await sanityWriteClient
+      .patch(sanityId)
+      .set({
+        ...sanityData,
+        photos: mergedPhotos,
+        videos: mergedVideos,
+        ...(mergedPruebas.length > 0 ? { pruebasTrabajoAprobadas: mergedPruebas } : {}),
+      })
+      .unset(["pendingPhotos", "pendingVideos"])
+      .commit()
 
     await prisma.artistProfile.update({
       where: { id: revision.artistId },
       data: {
         profileData: revision.data ?? {},
         status: "APPROVED",
+        ...(sanityId !== profile.sanityId ? { sanityId } : {}),
         adminComment: null,
         reviewedAt: new Date(),
       },
